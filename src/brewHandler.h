@@ -25,6 +25,7 @@ inline uint8_t brewSwitchReading = LOW;
 inline uint8_t currReadingBrewSwitch = LOW;
 inline bool brewSwitchWasOff = false;
 inline bool brewButtonLockedAtStartup = false;
+inline MachineState machineStateBeforeLock = kPidNormal;
 
 // Brew values
 inline double targetBrewTime = TARGET_BREW_TIME;          // brew time in s
@@ -92,7 +93,8 @@ inline void checkBrewSwitch() {
         if (lastLockedReading != brewSwitchReading) {
             LOG(INFO, "Brew button state changed - unlocking");
             brewButtonLockedAtStartup = false;
-            machineState = kPidNormal;
+            // Restore the machine state that was saved before locking
+            machineState = machineStateBeforeLock;
             loggedButtonLocked = false;
         }
         else if (!loggedButtonLocked) {

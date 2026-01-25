@@ -1225,7 +1225,9 @@ void setup() {
         if (brewSwitch->isPressed()) {
             LOG(WARNING, "Brew button detected as pressed at startup - locking brew function");
             brewButtonLockedAtStartup = true;
-            if (machineState == kPidNormal) {
+            // Lock brew function if machine is in an operating state (not disabled)
+            if (machineState != kPidDisabled && machineState != kEmergencyStop && machineState != kSensorError) {
+                machineStateBeforeLock = machineState;
                 machineState = kBrewButtonLocked;
             }
         }
