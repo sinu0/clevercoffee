@@ -1,29 +1,29 @@
 /* Custom Modern CSS for Clever Coffee */
 
-/* Color Palette - Modern Coffee Theme */
+/* Color Palette - Modern Pastel Theme */
 :root {
-    --primary-color: #6f4e37;
-    --primary-hover: #8b5e3c;
-    --secondary-color: #d4a574;
-    --accent-color: #a67c52;
-    --success-color: #28a745;
-    --danger-color: #dc3545;
-    --warning-color: #ffc107;
-    --info-color: #17a2b8;
-    --dark-color: #2c2c2c;
-    --light-bg: #f8f9fa;
-    --card-bg: #ffffff;
-    --text-primary: #2c2c2c;
-    --text-secondary: #6c757d;
+    --primary-color: #6B9BD1;
+    --primary-hover: #5A8AC4;
+    --secondary-color: #A8C5E2;
+    --accent-color: #7FA9D4;
+    --success-color: #81C784;
+    --danger-color: #E57373;
+    --warning-color: #FFD54F;
+    --info-color: #4FC3F7;
+    --dark-color: #455A64;
+    --light-bg: #F5F7FA;
+    --card-bg: #FFFFFF;
+    --text-primary: #37474F;
+    --text-secondary: #78909C;
     --border-radius: 12px;
-    --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
-    --shadow-md: 0 4px 16px rgba(0,0,0,0.12);
-    --shadow-lg: 0 8px 24px rgba(0,0,0,0.15);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.10);
 }
 
 /* Global Styles */
 body {
-    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+    background: linear-gradient(135deg, #E8F4F8 0%, #F0F4F8 100%);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     color: var(--text-primary);
     min-height: 100vh;
@@ -153,15 +153,15 @@ body {
 }
 
 .btn-success {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    background: linear-gradient(135deg, var(--success-color) 0%, #66BB6A 100%);
 }
 
 .btn-warning {
-    background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+    background: linear-gradient(135deg, var(--warning-color) 0%, #FFCA28 100%);
 }
 
 .btn-danger {
-    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    background: linear-gradient(135deg, var(--danger-color) 0%, #EF5350 100%);
 }
 
 .btn-outline-primary {
