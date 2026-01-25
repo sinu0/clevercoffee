@@ -57,6 +57,7 @@ enum MachineState {
     kPidDisabled = 60,
     kWaterTankEmpty = 70,
     kStandby = 80,
+    kBrewButtonLocked = 90,
     kEmergencyStop = 100,
     kSensorError = 110,
 };
@@ -77,6 +78,7 @@ constexpr EnumOption machineStateOptions[] = {{kInit, "Init"},
                                               {kEmergencyStop, "Emergency Stop"},
                                               {kPidDisabled, "PID Disabled"},
                                               {kStandby, "Standby Mode"},
+                                              {kBrewButtonLocked, "Brew Button Locked"},
                                               {kSensorError, "Sensor Error"}};
 
 MachineState machineState = kInit;
@@ -1215,6 +1217,17 @@ void setup() {
         else {
             setRuntimePidState(false);
             machineState = kPidDisabled;
+        }
+    }
+
+    // Check if brew button is pressed at startup to prevent automatic brewing
+    if (config.get<bool>("hardware.switches.brew.enabled") && brewSwitch != nullptr) {
+        if (brewSwitch->isPressed()) {
+            LOG(WARNING, "Brew button detected as pressed at startup - locking brew function");
+            brewButtonLockedAtStartup = true;
+            if (machineState == kPidNormal) {
+                machineState = kBrewButtonLocked;
+            }
         }
     }
 }

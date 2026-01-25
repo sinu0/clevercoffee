@@ -24,6 +24,7 @@ inline BackflushState currBackflushState = kBackflushIdle;
 inline uint8_t brewSwitchReading = LOW;
 inline uint8_t currReadingBrewSwitch = LOW;
 inline bool brewSwitchWasOff = false;
+inline bool brewButtonLockedAtStartup = false;
 
 // Brew values
 inline double targetBrewTime = TARGET_BREW_TIME;          // brew time in s
@@ -75,7 +76,28 @@ inline void checkBrewSwitch() {
     }
 
     static bool loggedEmptyWaterTank = false;
+    static bool loggedButtonLocked = false;
     brewSwitchReading = brewSwitch->isPressed();
+
+    // Check if brew button is locked at startup - require state change to unlock
+    if (brewButtonLockedAtStartup) {
+        static uint8_t lastLockedReading = LOW;
+        
+        // Detect state change (button was pressed and now released, or was released and now pressed)
+        if (lastLockedReading != brewSwitchReading) {
+            LOG(INFO, "Brew button state changed - unlocking");
+            brewButtonLockedAtStartup = false;
+            machineState = kPidNormal;
+            loggedButtonLocked = false;
+        }
+        else if (!loggedButtonLocked) {
+            LOG(WARNING, "Brew switch input ignored: Button was pressed at startup");
+            loggedButtonLocked = true;
+        }
+        
+        lastLockedReading = brewSwitchReading;
+        return;
+    }
 
     // Block brewSwitch input when water tank is empty
     if (machineState == kWaterTankEmpty) {

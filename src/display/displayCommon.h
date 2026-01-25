@@ -766,6 +766,22 @@ inline bool displayMachineState() {
         return true;
     }
 
+    // Brew button locked at startup
+    if (machineState == kBrewButtonLocked) {
+        u8g2->clearBuffer();
+        u8g2->setFont(u8g2_font_profont11_tf);
+        u8g2->setCursor(0, 10);
+        u8g2->print("BREW BUTTON");
+        u8g2->setCursor(0, 22);
+        u8g2->print("DETECTED!");
+        u8g2->setCursor(0, 40);
+        u8g2->print("Toggle button to");
+        u8g2->setCursor(0, 52);
+        u8g2->print("enable brewing");
+        u8g2->sendBuffer();
+        return true;
+    }
+
     // Backflush
     if (machineState == kBackflush) {
         u8g2->clearBuffer();
