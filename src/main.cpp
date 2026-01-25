@@ -204,10 +204,14 @@ double aggKd = aggTv * aggKp;
 
 double brewPidDelay = BREW_PID_DELAY; // Time PID will be disabled after brew started
 
+// PID Auto-calibration
+double pidCalibrationTemp = PID_CALIBRATION_TEMP;
+
 bool standbyModeOn = false;
 double standbyModeTime = STANDBY_MODE_TIME;
 
 #include "standby.h"
+#include "pidAutoTuneIntegration.h"
 
 // Variables to hold PID values (Temp input, Heater output)
 double temperature, pidOutput;
@@ -1317,7 +1321,15 @@ void loopPid() {
     }
 
     testEmergencyStop(); // test if temp is too high
-    bPID.Compute();      // the variable pidOutput now has new values from PID (will be written to heater pin in ISR.cpp)
+    
+    // Handle PID Auto-calibration if active
+    if (pidAutoTuneManager.isActive()) {
+        // Auto-calibration is controlling the output
+        pidAutoTuneManager.update();
+        // pidOutput is set by the AutoTune library directly
+    } else {
+        bPID.Compute();      // the variable pidOutput now has new values from PID (will be written to heater pin in ISR.cpp)
+    }
 
     websiteUpdateRunning = false;
 

@@ -22,7 +22,15 @@ const vueApp = Vue.createApp({
 
             // Factory reset properties
             factoryResetMessage: '',
-            factoryResetSuccess: false
+            factoryResetSuccess: false,
+
+            // PID Calibration properties
+            calibrationTemp: 95.0,
+            calibrationActive: false,
+            calibrationProgress: 0,
+            calibrationStatus: '',
+            calibrationResults: null,
+            calibrationCheckInterval: null
         }
     },
 
@@ -42,6 +50,11 @@ const vueApp = Vue.createApp({
 
         // Fetch parameters with the determined filter
         this.fetchParameters(this.filter);
+        
+        // Load calibration temperature if on system page
+        if (window.location.pathname.includes('system.html')) {
+            this.loadCalibrationTemp();
+        }
     },
 
     methods: {
@@ -500,6 +513,140 @@ const vueApp = Vue.createApp({
                 },
                 body: `var${paramName}=1`
             });
+        },
+
+        // PID Calibration methods
+        async startCalibration() {
+            if (!confirm('Start PID auto-calibration?\n\nThis will take approximately 8-12 minutes due to espresso machine boiler thermal mass. The auto-tuner will use the proven br3ttb/Arduino-PID-AutoTune-Library to determine optimal PID parameters.\n\nEnsure the machine is cool for best results.')) {
+                return;
+            }
+
+            // Update the calibration temperature parameter first
+            try {
+                const formData = new FormData();
+                formData.append('varpid.calibration.target_temp', this.calibrationTemp);
+                await fetch('/parameters', {
+                    method: 'POST',
+                    body: formData
+                });
+            } catch (err) {
+                console.error('Error setting calibration temperature:', err);
+            }
+
+            // Start calibration
+            try {
+                const response = await fetch('/startPidCalibration', { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.success) {
+                    this.calibrationActive = true;
+                    this.calibrationResults = null;
+                    this.startCalibrationPolling();
+                } else {
+                    alert('Failed to start auto-tune: ' + result.message);
+                }
+            } catch (err) {
+                alert('Error starting auto-tune: ' + err.message);
+            }
+        },
+
+        async stopCalibration() {
+            if (!confirm('Stop the auto-tuning process?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/stopPidCalibration', { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.success) {
+                    this.calibrationActive = false;
+                    this.stopCalibrationPolling();
+                }
+            } catch (err) {
+                alert('Error stopping auto-tune: ' + err.message);
+            }
+        },
+
+        startCalibrationPolling() {
+            // Poll status every 2 seconds
+            this.calibrationCheckInterval = setInterval(async () => {
+                try {
+                    const response = await fetch('/calibrationStatus');
+                    const status = await response.json();
+                    
+                    this.calibrationActive = status.active;
+                    this.calibrationProgress = status.progress;
+                    this.calibrationStatus = status.status;
+                    
+                    if (!status.active && status.complete) {
+                        // Calibration finished
+                        this.stopCalibrationPolling();
+                        
+                        if (status.hasResults) {
+                            this.calibrationResults = status.results;
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error checking calibration status:', err);
+                }
+            }, 2000);
+        },
+
+        stopCalibrationPolling() {
+            if (this.calibrationCheckInterval) {
+                clearInterval(this.calibrationCheckInterval);
+                this.calibrationCheckInterval = null;
+            }
+        },
+
+        async applyResults() {
+            if (!confirm('Apply the auto-tuned PID values?\n\nThis will update your PID parameters to:\n' +
+                         `Kp: ${this.calibrationResults.kp.toFixed(1)}\n` +
+                         `Tn: ${this.calibrationResults.tn.toFixed(1)}\n` +
+                         `Tv: ${this.calibrationResults.tv.toFixed(1)}`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/applyCalibrationResults', { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Auto-tune results applied successfully!\n\nThe new PID values are now active.');
+                    this.calibrationResults = null;
+                    
+                    // Reload parameters to show updated values
+                    if (this.parameters.length > 0) {
+                        this.fetchParameters(this.filter);
+                    }
+                } else {
+                    alert('Failed to apply results: ' + result.message);
+                }
+            } catch (err) {
+                alert('Error applying results: ' + err.message);
+            }
+        },
+
+        dismissResults() {
+            this.calibrationResults = null;
+        },
+
+        async loadCalibrationTemp() {
+            try {
+                // Fetch the calibration temperature parameter
+                const response = await fetch('/parameters?filter=all');
+                const data = await response.json();
+                
+                if (data.parameters) {
+                    const calibTempParam = data.parameters.find(p => p.name === 'pid.calibration.target_temp');
+                    if (calibTempParam) {
+                        this.calibrationTemp = calibTempParam.value;
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading calibration temperature:', err);
+            }
         },
 
     },

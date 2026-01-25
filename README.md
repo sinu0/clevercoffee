@@ -91,6 +91,7 @@ Improved MQTT discovery message generation for better stability and reliability.
  * Control of the brew temperature with an accuracy of up to +/- 0.1 degrees
  * Reaches the target temperature within 5 to 10 minutes after switching on (you should, however, wait a bit longer, e.g. 20 min depending on the machine to heat up the group head etc.)
  * Set PID parameters and monitor current temperature and heater output on a web page hosted on the ESP controller
+ * **NEW: PID Auto-Calibration** - Automatically tune PID parameters using relay feedback test for optimal temperature control without manual trial-and-error
  * Separate PID for steam mode with own parameters and target temperature (can be enabled in the web interface/MQTT or using the steam switch)
  * Automatically brew by set time including pre-infusion timing
  * Automatically brew by weight using integrated weight cells or Bluetooth Low Energy scales

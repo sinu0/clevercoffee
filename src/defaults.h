@@ -110,3 +110,6 @@
 #define MQTT_TOPIC_MAX_LENGTH         48
 #define MQTT_HASSIO_PREFIX_MAX_LENGTH 24
 #define HOSTNAME_MAX_LENGTH           64
+#define PID_CALIBRATION_TEMP          95.0             // default temperature for PID calibration
+#define PID_CALIBRATION_TEMP_MIN      70.0
+#define PID_CALIBRATION_TEMP_MAX      110.0
