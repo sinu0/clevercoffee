@@ -81,7 +81,12 @@ inline void checkBrewSwitch() {
 
     // Check if brew button is locked at startup - require state change to unlock
     if (brewButtonLockedAtStartup) {
-        static uint8_t lastLockedReading = LOW;
+        static uint8_t lastLockedReading = 0xFF; // Sentinel value for first call
+        
+        // Initialize lastLockedReading on first call
+        if (lastLockedReading == 0xFF) {
+            lastLockedReading = brewSwitchReading;
+        }
         
         // Detect state change (button was pressed and now released, or was released and now pressed)
         if (lastLockedReading != brewSwitchReading) {
