@@ -25,7 +25,7 @@ inline uint8_t brewSwitchReading = LOW;
 inline uint8_t currReadingBrewSwitch = LOW;
 inline bool brewSwitchWasOff = false;
 inline bool brewButtonLockedAtStartup = false;
-inline MachineState machineStateBeforeLock = kPidNormal;
+inline MachineState machineStateBeforeLock = kInit; // Use kInit as sentinel value
 
 // Brew values
 inline double targetBrewTime = TARGET_BREW_TIME;          // brew time in s
@@ -82,11 +82,13 @@ inline void checkBrewSwitch() {
 
     // Check if brew button is locked at startup - require state change to unlock
     if (brewButtonLockedAtStartup) {
-        static uint8_t lastLockedReading = 0xFF; // Sentinel value for first call
+        static uint8_t lastLockedReading = 0xFF; // Sentinel value to indicate first call
+        static bool firstCall = true;
         
         // Initialize lastLockedReading on first call
-        if (lastLockedReading == 0xFF) {
+        if (firstCall) {
             lastLockedReading = brewSwitchReading;
+            firstCall = false;
         }
         
         // Detect state change (button was pressed and now released, or was released and now pressed)
@@ -94,8 +96,15 @@ inline void checkBrewSwitch() {
             LOG(INFO, "Brew button state changed - unlocking");
             brewButtonLockedAtStartup = false;
             // Restore the machine state that was saved before locking
-            machineState = machineStateBeforeLock;
+            // If no valid state was saved (kInit), default to kPidNormal
+            if (machineStateBeforeLock != kInit) {
+                machineState = machineStateBeforeLock;
+            }
+            else {
+                machineState = kPidNormal;
+            }
             loggedButtonLocked = false;
+            firstCall = true; // Reset for next time
         }
         else if (!loggedButtonLocked) {
             LOG(WARNING, "Brew switch input ignored: Button was pressed at startup");
