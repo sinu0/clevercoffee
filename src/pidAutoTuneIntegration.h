@@ -38,11 +38,11 @@ class PIDAutoTuneManager {
         int progressPercent = 0;
         String statusMessage = "Idle";
         
-        // Configuration
+        // Configuration - optimized for espresso machine boilers
         double targetTemp = 95.0;
         double outputStep = 50.0;     // Output step for relay feedback (0-100%)
-        double noiseBand = 0.5;        // Temperature noise band (°C)
-        int lookBack = 20;             // Lookback time in seconds
+        double noiseBand = 1.0;        // Temperature noise band (°C) - larger for espresso machines
+        int lookBack = 30;             // Lookback time in seconds - longer for thermal lag
         
     public:
         /**
@@ -136,9 +136,9 @@ class PIDAutoTuneManager {
             }
             
             // Update progress based on elapsed time
-            // Typically takes 1-3 minutes depending on system
+            // Espresso machine boilers typically take 8-12 minutes due to thermal mass
             unsigned long elapsed = millis() - tuneStartTime;
-            progressPercent = constrain((elapsed / 1000) * 100 / 180, 0, 95); // Assume max 3 minutes
+            progressPercent = constrain((elapsed / 1000) * 100 / 600, 0, 95); // Assume max 10 minutes
             
             // Tuning still in progress
             return true;

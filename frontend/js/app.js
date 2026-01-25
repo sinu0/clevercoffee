@@ -517,7 +517,7 @@ const vueApp = Vue.createApp({
 
         // PID Calibration methods
         async startCalibration() {
-            if (!confirm('Start PID auto-calibration?\n\nThis will take 1-3 minutes. The auto-tuner will use the proven br3ttb/Arduino-PID-AutoTune-Library to determine optimal PID parameters.\n\nEnsure the machine is cool for best results.')) {
+            if (!confirm('Start PID auto-calibration?\n\nThis will take approximately 8-12 minutes due to espresso machine boiler thermal mass. The auto-tuner will use the proven br3ttb/Arduino-PID-AutoTune-Library to determine optimal PID parameters.\n\nEnsure the machine is cool for best results.')) {
                 return;
             }
 

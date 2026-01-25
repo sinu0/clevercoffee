@@ -63,11 +63,12 @@ The implementation consists of three components:
    - Switches output between high/low
    - Observes temperature oscillations
    - Calculates ultimate gain (Ku) and period (Pu)
+   - Multiple cycles analyzed due to espresso boiler thermal mass
 4. **Automatic calculation** of PID parameters
 5. **Results converted** to Tn/Tv form
 6. **User reviews and applies** parameters
 
-**Typical Duration**: 1-3 minutes (system dependent)
+**Typical Duration**: 8-12 minutes for espresso machine boilers (longer due to thermal mass and lag)
 
 ### Code Structure
 
@@ -114,7 +115,7 @@ Parameter: `pid.calibration.target_temp`
 | **Development Time** | High | Low |
 | **Testing** | Required | Already tested |
 | **Reliability** | Unknown | Proven |
-| **Speed** | 7-8 minutes | 1-3 minutes |
+| **Calibration Time** | 7-8 minutes (estimate) | 8-12 minutes (realistic for boilers) |
 | **Maintenance** | Our responsibility | Community maintained |
 | **Documentation** | Need to create | Already exists |
 | **Trust** | Needs validation | Industry standard |
@@ -122,7 +123,7 @@ Parameter: `pid.calibration.target_temp`
 ### Integration Benefits
 
 1. **Less code to maintain** (~230 lines vs ~800 lines)
-2. **Faster calibration** (1-3 min vs 7-8 min)
+2. **Realistic timing** (8-12 min accounting for boiler thermal mass)
 3. **Better tested** (thousands of users vs new code)
 4. **Professional results** (proven algorithms)
 5. **Community support** (extensive documentation)
@@ -146,16 +147,17 @@ After successful auto-tuning:
 **Before** (Custom Implementation):
 - ~800 lines of new code
 - Custom RFT implementation
-- 7-8 minute calibration
+- 7-8 minute calibration (estimate)
 - Requires extensive testing
 - Maintenance burden
 
 **After** (Library Integration):
 - ~230 lines integration code
 - Proven library (1000s of users)
-- 1-3 minute calibration
+- 8-12 minute calibration (realistic for espresso boilers)
 - Already tested worldwide
 - Community maintained
+- Properly tuned for thermal mass systems
 
 ### Files Changed Summary
 

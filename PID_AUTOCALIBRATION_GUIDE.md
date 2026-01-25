@@ -14,10 +14,11 @@ The library uses the **Relay Feedback Method** (also known as the relay oscillat
    - The library takes over control of the heater output
    - Sets the target temperature for calibration
 
-2. **Relay Feedback Phase (1-3 minutes)**
+2. **Relay Feedback Phase (8-12 minutes for espresso machines)**
    - The output is switched between high and low values (relay mode)
    - The system observes how the temperature responds to these changes
    - Multiple oscillation cycles are analyzed
+   - Takes longer for espresso machines due to boiler thermal mass and sensor lag
 
 3. **Parameter Calculation**
    - The library automatically calculates the ultimate gain (Ku) and period (Pu)
@@ -28,7 +29,7 @@ The library uses the **Relay Feedback Method** (also known as the relay oscillat
    - Parameters are converted to Tn/Tv form used by this system
    - You review and apply the results
 
-**Total Time**: Typically 1-3 minutes (much faster than custom implementations)
+**Total Time**: Typically 8-12 minutes for espresso machine boilers (slower than small systems due to thermal mass)
 
 ## Library Information
 
@@ -42,7 +43,7 @@ The library uses the **Relay Feedback Method** (also known as the relay oscillat
 ## Why This Library?
 
 ✅ **Proven and tested** in real-world applications
-✅ **Fast** - typically completes in 1-3 minutes  
+✅ **Optimized** - completes in 8-12 minutes for espresso machines  
 ✅ **Reliable** - implements standard control engineering methods
 ✅ **Well-documented** - extensive community support
 ✅ **Compatible** - works perfectly with existing PID_v1 library
@@ -97,7 +98,8 @@ The library uses the **Relay Feedback Method** (also known as the relay oscillat
 4. **Monitor Progress**
    - Progress bar shows completion percentage
    - Status message shows "Auto-tuning in progress..."
-   - Typically completes in 1-3 minutes
+   - Typically completes in 8-12 minutes for espresso machine boilers
+   - Be patient - the thermal mass requires multiple oscillation cycles
 
 5. **Review Results**
    - When complete, recommended PID values are displayed in Tn/Tv form:

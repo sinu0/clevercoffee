@@ -476,9 +476,9 @@ For each switch type (brew, power, steam):
 - **Range**: 70.0-110.0
 - **Description**: Target temperature for PID auto-calibration process using the proven br3ttb/Arduino-PID-AutoTune-Library. Set this to your normal brewing temperature.
 
-**Usage**: Navigate to the System page in the web interface and use the PID Auto-Calibration section to start the auto-tuning process. The procedure uses the relay feedback method and typically takes 1-3 minutes to automatically determine the best Kp, Tn, and Tv values for your machine.
+**Usage**: Navigate to the System page in the web interface and use the PID Auto-Calibration section to start the auto-tuning process. The procedure uses the relay feedback method and typically takes 8-12 minutes for espresso machine boilers to automatically determine the best Kp, Tn, and Tv values for your machine.
 
-**Library**: This feature integrates the well-tested Arduino PID AutoTune library by Brett Beauregard, which has been proven in thousands of projects worldwide.
+**Library**: This feature integrates the well-tested Arduino PID AutoTune library by Brett Beauregard, which has been proven in thousands of projects worldwide. The longer calibration time accounts for the thermal mass and lag inherent in espresso machine boilers.
 
 ---
 

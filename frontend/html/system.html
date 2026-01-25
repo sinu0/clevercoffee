@@ -63,13 +63,13 @@
                             <p class="card-text text-muted">
                                 Automatically tune PID parameters using the proven br3ttb/Arduino-PID-AutoTune-Library.
                                 The calibration uses relay feedback method to determine optimal PID values.
-                                Typically takes 1-3 minutes.
+                                Typically takes 8-12 minutes for espresso machine boilers due to thermal mass.
                             </p>
                             
                             <div class="alert alert-info">
                                 <strong>Before starting:</strong> 
                                 Ensure the machine is cool or at room temperature for best results. 
-                                The library will analyze the system response to determine optimal parameters.
+                                The calibration will take approximately 10 minutes to complete as the boiler heats up and the library analyzes multiple oscillation cycles.
                             </div>
 
                             <div v-if="!calibrationActive">
