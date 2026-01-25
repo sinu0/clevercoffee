@@ -6,28 +6,34 @@
     </script>
 
     <div id="content">
-        <div class="container my-2">
-            <br/>
-            <div class="underlined-heading mb-5" id="epilog"><h3>System</h3></div>
+        <div class="container my-4">
+            <div class="mb-4">
+                <h3 class="fw-bold"><i class="fa-solid fa-server me-2"></i>System</h3>
+                <hr style="border-top: 3px solid var(--primary-color); opacity: 1;">
+            </div>
 
             <!-- System Control Section -->
             <div class="row mb-4">
-                <div class="col-md-6">
+                <div class="col-md-6 mb-3">
                     <div class="card h-100">
                         <div class="card-body">
-                            <h5 class="card-title text-warning mb-3">Restart Machine</h5>
+                            <h5 class="card-title text-warning mb-3">
+                                <i class="fa-solid fa-power-off me-2"></i>Restart Machine
+                            </h5>
                             <p class="card-text text-muted">Restart the machine to apply changes or resolve issues.</p>
                             <button @click="confirmRestart" class="btn btn-warning btn-lg">
-                                <span class="fa-solid fa-power-off me-2"></span>
+                                <span class="fa-solid fa-rotate me-2"></span>
                                 Restart
                             </button>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6 mb-3">
                     <div class="card h-100">
                         <div class="card-body">
-                            <h5 class="card-title text-danger mb-3">Reset Options</h5>
+                            <h5 class="card-title text-danger mb-3">
+                                <i class="fa-solid fa-exclamation-triangle me-2"></i>Reset Options
+                            </h5>
                             <p class="card-text text-muted">
                                 <strong>Warning:</strong> These actions cannot be undone.
                             </p>
@@ -53,22 +59,26 @@
 
             <!-- Configuration Section -->
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-6 mb-3">
                     <div class="card h-100">
                         <div class="card-body">
-                            <h5 class="card-title text-success mb-3">Configuration Backup</h5>
+                            <h5 class="card-title text-success mb-3">
+                                <i class="fa-solid fa-download me-2"></i>Configuration Backup
+                            </h5>
                             <p class="card-text text-muted">Download your current configuration as a backup file.</p>
                             <a href="/download/config" class="btn btn-success btn-lg" download="clevercoffee-config.json">
-                                <span class="fa-solid fa-download me-2"></span>
+                                <span class="fa-solid fa-file-download me-2"></span>
                                 Download Config
                             </a>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6 mb-3">
                     <div class="card h-100">
                         <div class="card-body">
-                            <h5 class="card-title text-warning mb-3">Configuration Upload</h5>
+                            <h5 class="card-title text-warning mb-3">
+                                <i class="fa-solid fa-upload me-2"></i>Configuration Upload
+                            </h5>
                             <p class="card-text text-muted">Upload a previously downloaded configuration file to restore
                                 settings.</p>
                             <div class="mb-3">
@@ -81,7 +91,7 @@
                             <button @click="uploadConfig"
                                     class="btn btn-warning btn-lg"
                                     :disabled="!selectedFile || isUploading">
-                                <span class="fa-solid fa-upload me-2"></span>
+                                <span class="fa-solid fa-cloud-upload-alt me-2"></span>
                                 <span v-if="isUploading">Uploading...</span>
                                 <span v-else>Upload Config</span>
                             </button>

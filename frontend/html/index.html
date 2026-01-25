@@ -30,18 +30,20 @@
 
     <div class="content-wrapper">
         <div id="content" class="container my-5">
-            <div class="card card-accent-dark mb-5 pb-0 shadow-sm rounded">
+            <div class="card card-accent-dark mb-4 pb-0 shadow-sm rounded">
                 <div class="card-body bg-light pb-1 rounded">
                     <h5 class="card-title">
-                        Status
+                        <i class="fa-solid fa-temperature-half me-2"></i>Status
                     </h5>
                 </div>
                 <div class="card-body">
                     <form @submit.prevent="postParameters">
-                        <div class="row row-cols-1 row-cols-md-3">
+                        <div class="row row-cols-1 row-cols-md-3 align-items-center">
                             <div class="col-md-5 mb-4">
-                                <label class="form-label me-1 col-form-label">Current Temperature</label><br/>
-                                <b><span id="varTEMP"></span> °C</b>
+                                <div class="status-label mb-2">Current Temperature</div>
+                                <div class="status-value">
+                                    <span id="varTEMP"></span><span style="font-size: 1.5rem; margin-left: 0.25rem;">°C</span>
+                                </div>
                             </div>
 
                             <template v-for="param in parameters">
@@ -69,10 +71,10 @@
                 </div>
             </div>
 
-            <div class="card card-accent-dark mb-5 pb-0 shadow-sm rounded">
+            <div class="card card-accent-dark mb-4 pb-0 shadow-sm rounded">
                 <div class="card-body bg-light pb-1 rounded">
                     <h5 class="card-title">
-                        Functions
+                        <i class="fa-solid fa-sliders me-2"></i>Functions
                     </h5>
                 </div>
                 <div class="card-body">
@@ -157,10 +159,10 @@
                 </div>
             </div>
 
-            <div class="card card-accent-dark mb-5 shadow-sm rounded">
+            <div class="card card-accent-dark mb-4 shadow-sm rounded">
                 <div class="card-body bg-light pb-1 rounded">
                     <h5 class="card-title">
-                        Temperature
+                        <i class="fa-solid fa-chart-line me-2"></i>Temperature History
                         <a href="#" role="button" data-bs-toggle="popover" data-bs-html="true" data-bs-original-title="History of the boiler temperature. Drag to zoom, double-click to reset zoom again.">
                             <span class="fa-solid fa-question-circle"></span>
                         </a>
@@ -170,10 +172,10 @@
                     <div id="chart-temperature"></div>
                 </div>
             </div>
-            <div class="card card-accent-dark mb-5 shadow-sm rounded">
+            <div class="card card-accent-dark mb-4 shadow-sm rounded">
                 <div class="card-body bg-light pb-1 rounded">
                     <h5 class="card-title">
-                        Heater Output
+                        <i class="fa-solid fa-fire me-2"></i>Heater Output
                         <a href="#" role="button" data-bs-toggle="popover" data-bs-html="true" data-bs-original-title="History of the controlled heater power. Drag to zoom, double-click to reset zoom again.">
                             <span class="fa-solid fa-question-circle"></span>
                         </a>
