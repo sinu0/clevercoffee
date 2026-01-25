@@ -474,9 +474,11 @@ For each switch type (brew, power, steam):
 - **Type**: Double (°C)
 - **Default**: `95.0`
 - **Range**: 70.0-110.0
-- **Description**: Target temperature for PID auto-calibration process. Set this to your normal brewing temperature. The auto-calibration feature will analyze system response at this temperature and calculate optimal PID parameters.
+- **Description**: Target temperature for PID auto-calibration process using the proven br3ttb/Arduino-PID-AutoTune-Library. Set this to your normal brewing temperature.
 
-**Usage**: Navigate to the System page in the web interface and use the PID Auto-Calibration section to start the calibration process. The procedure takes approximately 7-8 minutes and will automatically determine the best Kp, Tn, and Tv values for your machine.
+**Usage**: Navigate to the System page in the web interface and use the PID Auto-Calibration section to start the auto-tuning process. The procedure uses the relay feedback method and typically takes 1-3 minutes to automatically determine the best Kp, Tn, and Tv values for your machine.
+
+**Library**: This feature integrates the well-tested Arduino PID AutoTune library by Brett Beauregard, which has been proven in thousands of projects worldwide.
 
 ---
 

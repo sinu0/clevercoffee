@@ -240,12 +240,12 @@ inline void serverSetup() {
 
         LOGF(DEBUG, "/startPidCalibration requested");
 
-        if (pidAutoTune.start(pidCalibrationTemp)) {
-            LOGF(INFO, "PID calibration started with target temp: %.1f°C", pidCalibrationTemp);
-            request->send(200, "application/json", "{\"success\":true,\"message\":\"Calibration started\"}");
+        if (pidAutoTuneManager.start(pidCalibrationTemp)) {
+            LOGF(INFO, "PID auto-tune started with target temp: %.1f°C", pidCalibrationTemp);
+            request->send(200, "application/json", "{\"success\":true,\"message\":\"Auto-tune started\"}");
         } else {
-            LOG(WARNING, "Failed to start PID calibration - already in progress");
-            request->send(400, "application/json", "{\"success\":false,\"message\":\"Calibration already in progress\"}");
+            LOG(WARNING, "Failed to start PID auto-tune - already in progress");
+            request->send(400, "application/json", "{\"success\":false,\"message\":\"Auto-tune already in progress\"}");
         }
     });
 
@@ -255,10 +255,10 @@ inline void serverSetup() {
         }
 
         LOGF(DEBUG, "/stopPidCalibration requested");
-        pidAutoTune.stop();
-        LOG(INFO, "PID calibration stopped");
+        pidAutoTuneManager.stop();
+        LOG(INFO, "PID auto-tune stopped");
 
-        request->send(200, "application/json", "{\"success\":true,\"message\":\"Calibration stopped\"}");
+        request->send(200, "application/json", "{\"success\":true,\"message\":\"Auto-tune stopped\"}");
     });
 
     server.on("/calibrationStatus", HTTP_GET, [](AsyncWebServerRequest* request) {
@@ -267,13 +267,13 @@ inline void serverSetup() {
         }
 
         JsonDocument doc;
-        doc["active"] = pidAutoTune.isActive();
-        doc["state"] = static_cast<int>(pidAutoTune.getState());
-        doc["progress"] = pidAutoTune.getProgress();
-        doc["status"] = pidAutoTune.getStatusMessage();
+        doc["active"] = pidAutoTuneManager.isActive();
+        doc["complete"] = pidAutoTuneManager.isComplete();
+        doc["progress"] = pidAutoTuneManager.getProgress();
+        doc["status"] = pidAutoTuneManager.getStatusMessage();
 
         double kp, tn, tv;
-        if (pidAutoTune.getResults(kp, tn, tv)) {
+        if (pidAutoTuneManager.getResultsInTnTvForm(kp, tn, tv)) {
             doc["hasResults"] = true;
             doc["results"]["kp"] = kp;
             doc["results"]["tn"] = tn;
@@ -293,9 +293,8 @@ inline void serverSetup() {
         }
 
         double kp, tn, tv;
-        if (pidAutoTune.getResults(kp, tn, tv)) {
+        if (pidAutoTuneManager.getResultsInTnTvForm(kp, tn, tv)) {
             // Apply the calibration results
-            // Validate parameters exist before setting
             auto& registry = ParameterRegistry::getInstance();
             if (registry.getParameterById("pid.regular.kp") != nullptr &&
                 registry.getParameterById("pid.regular.tn") != nullptr &&
@@ -306,15 +305,15 @@ inline void serverSetup() {
                 registry.setParameterValue("pid.regular.tv", tv);
                 registry.forceSave();
 
-                LOGF(INFO, "Applied calibration results: Kp=%.1f, Tn=%.1f, Tv=%.1f", kp, tn, tv);
-                request->send(200, "application/json", "{\"success\":true,\"message\":\"Calibration results applied\"}");
+                LOGF(INFO, "Applied auto-tune results: Kp=%.1f, Tn=%.1f, Tv=%.1f", kp, tn, tv);
+                request->send(200, "application/json", "{\"success\":true,\"message\":\"Auto-tune results applied\"}");
             } else {
                 LOG(ERROR, "PID parameters not found in registry");
                 request->send(500, "application/json", "{\"success\":false,\"message\":\"PID parameters not found\"}");
             }
         } else {
-            LOG(WARNING, "No calibration results available to apply");
-            request->send(400, "application/json", "{\"success\":false,\"message\":\"No calibration results available\"}");
+            LOG(WARNING, "No auto-tune results available to apply");
+            request->send(400, "application/json", "{\"success\":false,\"message\":\"No auto-tune results available\"}");
         }
     });
 

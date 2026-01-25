@@ -178,7 +178,7 @@ void ParameterRegistry::initialize(Config& config) {
         &pidCalibrationTemp,
         PID_CALIBRATION_TEMP_MIN,
         PID_CALIBRATION_TEMP_MAX,
-        "Target temperature for PID auto-calibration process. Typically set to your normal brewing temperature."
+        "Target temperature for PID auto-calibration using proven br3ttb/Arduino-PID-AutoTune-Library"
     );
 
     // Temperature Section

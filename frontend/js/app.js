@@ -517,7 +517,7 @@ const vueApp = Vue.createApp({
 
         // PID Calibration methods
         async startCalibration() {
-            if (!confirm('Start PID auto-calibration?\n\nThis will take approximately 7-8 minutes. The machine will heat to the calibration temperature and oscillate to measure system response.\n\nEnsure the machine is cool for best results.')) {
+            if (!confirm('Start PID auto-calibration?\n\nThis will take 1-3 minutes. The auto-tuner will use the proven br3ttb/Arduino-PID-AutoTune-Library to determine optimal PID parameters.\n\nEnsure the machine is cool for best results.')) {
                 return;
             }
 
@@ -543,15 +543,15 @@ const vueApp = Vue.createApp({
                     this.calibrationResults = null;
                     this.startCalibrationPolling();
                 } else {
-                    alert('Failed to start calibration: ' + result.message);
+                    alert('Failed to start auto-tune: ' + result.message);
                 }
             } catch (err) {
-                alert('Error starting calibration: ' + err.message);
+                alert('Error starting auto-tune: ' + err.message);
             }
         },
 
         async stopCalibration() {
-            if (!confirm('Stop the calibration process?')) {
+            if (!confirm('Stop the auto-tuning process?')) {
                 return;
             }
 
@@ -564,7 +564,7 @@ const vueApp = Vue.createApp({
                     this.stopCalibrationPolling();
                 }
             } catch (err) {
-                alert('Error stopping calibration: ' + err.message);
+                alert('Error stopping auto-tune: ' + err.message);
             }
         },
 
@@ -579,7 +579,7 @@ const vueApp = Vue.createApp({
                     this.calibrationProgress = status.progress;
                     this.calibrationStatus = status.status;
                     
-                    if (!status.active) {
+                    if (!status.active && status.complete) {
                         // Calibration finished
                         this.stopCalibrationPolling();
                         
@@ -601,7 +601,7 @@ const vueApp = Vue.createApp({
         },
 
         async applyResults() {
-            if (!confirm('Apply the calibrated PID values?\n\nThis will update your PID parameters to:\n' +
+            if (!confirm('Apply the auto-tuned PID values?\n\nThis will update your PID parameters to:\n' +
                          `Kp: ${this.calibrationResults.kp.toFixed(1)}\n` +
                          `Tn: ${this.calibrationResults.tn.toFixed(1)}\n` +
                          `Tv: ${this.calibrationResults.tv.toFixed(1)}`)) {
@@ -613,7 +613,7 @@ const vueApp = Vue.createApp({
                 const result = await response.json();
                 
                 if (result.success) {
-                    alert('Calibration results applied successfully!\n\nThe new PID values are now active.');
+                    alert('Auto-tune results applied successfully!\n\nThe new PID values are now active.');
                     this.calibrationResults = null;
                     
                     // Reload parameters to show updated values
