@@ -233,6 +233,81 @@ inline void serverSetup() {
         request->redirect("/");
     });
 
+    server.on("/startPidCalibration", HTTP_POST, [](AsyncWebServerRequest* request) {
+        if (!authenticate(request)) {
+            return request->requestAuthentication();
+        }
+
+        LOGF(DEBUG, "/startPidCalibration requested");
+
+        if (pidAutoTune.start(pidCalibrationTemp)) {
+            LOGF(INFO, "PID calibration started with target temp: %.1f°C", pidCalibrationTemp);
+            request->send(200, "application/json", "{\"success\":true,\"message\":\"Calibration started\"}");
+        } else {
+            LOG(WARNING, "Failed to start PID calibration - already in progress");
+            request->send(400, "application/json", "{\"success\":false,\"message\":\"Calibration already in progress\"}");
+        }
+    });
+
+    server.on("/stopPidCalibration", HTTP_POST, [](AsyncWebServerRequest* request) {
+        if (!authenticate(request)) {
+            return request->requestAuthentication();
+        }
+
+        LOGF(DEBUG, "/stopPidCalibration requested");
+        pidAutoTune.stop();
+        LOG(INFO, "PID calibration stopped");
+
+        request->send(200, "application/json", "{\"success\":true,\"message\":\"Calibration stopped\"}");
+    });
+
+    server.on("/calibrationStatus", HTTP_GET, [](AsyncWebServerRequest* request) {
+        if (!authenticate(request)) {
+            return request->requestAuthentication();
+        }
+
+        JsonDocument doc;
+        doc["active"] = pidAutoTune.isActive();
+        doc["state"] = static_cast<int>(pidAutoTune.getState());
+        doc["progress"] = pidAutoTune.getProgress();
+        doc["status"] = pidAutoTune.getStatusMessage();
+
+        double kp, tn, tv;
+        if (pidAutoTune.getResults(kp, tn, tv)) {
+            doc["hasResults"] = true;
+            doc["results"]["kp"] = kp;
+            doc["results"]["tn"] = tn;
+            doc["results"]["tv"] = tv;
+        } else {
+            doc["hasResults"] = false;
+        }
+
+        String jsonStatus;
+        serializeJson(doc, jsonStatus);
+        request->send(200, "application/json", jsonStatus);
+    });
+
+    server.on("/applyCalibrationResults", HTTP_POST, [](AsyncWebServerRequest* request) {
+        if (!authenticate(request)) {
+            return request->requestAuthentication();
+        }
+
+        double kp, tn, tv;
+        if (pidAutoTune.getResults(kp, tn, tv)) {
+            // Apply the calibration results
+            ParameterRegistry::getInstance().setParameterValue("pid.regular.kp", kp);
+            ParameterRegistry::getInstance().setParameterValue("pid.regular.tn", tn);
+            ParameterRegistry::getInstance().setParameterValue("pid.regular.tv", tv);
+            ParameterRegistry::getInstance().forceSave();
+
+            LOGF(INFO, "Applied calibration results: Kp=%.1f, Tn=%.1f, Tv=%.1f", kp, tn, tv);
+            request->send(200, "application/json", "{\"success\":true,\"message\":\"Calibration results applied\"}");
+        } else {
+            LOG(WARNING, "No calibration results available to apply");
+            request->send(400, "application/json", "{\"success\":false,\"message\":\"No calibration results available\"}");
+        }
+    });
+
     if (config.get<bool>("hardware.sensors.scale.enabled")) {
         server.on("/toggleTareScale", HTTP_POST, [](AsyncWebServerRequest* request) {
             if (!authenticate(request)) {

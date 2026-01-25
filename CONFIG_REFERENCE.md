@@ -468,6 +468,18 @@ For each switch type (brew, power, steam):
 
 ---
 
+## PID Auto-Calibration
+
+### `pid.calibration.target_temp`
+- **Type**: Double (°C)
+- **Default**: `95.0`
+- **Range**: 70.0-110.0
+- **Description**: Target temperature for PID auto-calibration process. Set this to your normal brewing temperature. The auto-calibration feature will analyze system response at this temperature and calculate optimal PID parameters.
+
+**Usage**: Navigate to the System page in the web interface and use the PID Auto-Calibration section to start the calibration process. The procedure takes approximately 7-8 minutes and will automatically determine the best Kp, Tn, and Tv values for your machine.
+
+---
+
 ## Standby Settings
 
 ### `standby.enabled`

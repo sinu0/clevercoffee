@@ -26,6 +26,7 @@ extern double steamSetpoint;
 extern double targetBrewTime;
 extern double preinfusion;
 extern double preinfusionPause;
+extern double pidCalibrationTemp;
 extern int backflushCycles;
 extern double backflushFillTime;
 extern double backflushFlushTime;
@@ -166,6 +167,18 @@ void ParameterRegistry::initialize(Config& config) {
         PID_KP_STEAM_MIN,
         PID_KP_STEAM_MAX,
         "Proportional gain for the steaming mode (I or D are not used)"
+    );
+
+    addNumericConfigParam<double>(
+        "pid.calibration.target_temp",
+        "Calibration Temperature (°C)",
+        kDouble,
+        sPIDSection,
+        117,
+        &pidCalibrationTemp,
+        PID_CALIBRATION_TEMP_MIN,
+        PID_CALIBRATION_TEMP_MAX,
+        "Target temperature for PID auto-calibration process. Typically set to your normal brewing temperature."
     );
 
     // Temperature Section

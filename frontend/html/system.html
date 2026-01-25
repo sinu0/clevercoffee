@@ -51,6 +51,104 @@
                 </div>
             </div>
 
+            <!-- PID Auto-Calibration Section -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary mb-3">
+                                <span class="fa-solid fa-gauge-high me-2"></span>
+                                PID Auto-Calibration
+                            </h5>
+                            <p class="card-text text-muted">
+                                Automatically tune PID parameters for optimal temperature control. 
+                                The calibration process takes approximately 7-8 minutes and will analyze 
+                                heating and cooling patterns to determine the best PID values.
+                            </p>
+                            
+                            <div class="alert alert-info">
+                                <strong>Before starting:</strong> 
+                                Ensure the machine is at room temperature or cool for best results. 
+                                The process will heat to the calibration temperature and oscillate to measure system response.
+                            </div>
+
+                            <div v-if="!calibrationActive">
+                                <div class="mb-3">
+                                    <label for="calibrationTemp" class="form-label">
+                                        Calibration Temperature (°C)
+                                        <a href="#" role="button" data-bs-toggle="popover" data-bs-html="true" 
+                                           data-bs-content="Set this to your normal brewing temperature. The auto-calibration will tune the PID parameters at this temperature.">
+                                            <span class="fa-solid fa-question-circle"></span>
+                                        </a>
+                                    </label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="calibrationTemp" 
+                                           v-model="calibrationTemp"
+                                           min="70" 
+                                           max="110" 
+                                           step="0.5">
+                                </div>
+                                <button @click="startCalibration" class="btn btn-primary btn-lg">
+                                    <span class="fa-solid fa-play me-2"></span>
+                                    Start Calibration
+                                </button>
+                            </div>
+
+                            <div v-else>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <strong>Progress:</strong>
+                                        <span>{{ calibrationProgress }}%</span>
+                                    </div>
+                                    <div class="progress" style="height: 25px;">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                             role="progressbar" 
+                                             :style="{width: calibrationProgress + '%'}"
+                                             :aria-valuenow="calibrationProgress" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-primary mb-3">
+                                    <span class="fa-solid fa-info-circle me-2"></span>
+                                    <strong>Status:</strong> {{ calibrationStatus }}
+                                </div>
+
+                                <button @click="stopCalibration" class="btn btn-danger btn-lg">
+                                    <span class="fa-solid fa-stop me-2"></span>
+                                    Stop Calibration
+                                </button>
+                            </div>
+
+                            <div v-if="calibrationResults" class="mt-4">
+                                <div class="alert alert-success">
+                                    <h6 class="alert-heading">
+                                        <span class="fa-solid fa-check-circle me-2"></span>
+                                        Calibration Complete!
+                                    </h6>
+                                    <p class="mb-2">Recommended PID values:</p>
+                                    <ul class="mb-3">
+                                        <li><strong>Kp:</strong> {{ calibrationResults.kp.toFixed(1) }}</li>
+                                        <li><strong>Tn:</strong> {{ calibrationResults.tn.toFixed(1) }}</li>
+                                        <li><strong>Tv:</strong> {{ calibrationResults.tv.toFixed(1) }}</li>
+                                    </ul>
+                                    <button @click="applyResults" class="btn btn-success me-2">
+                                        <span class="fa-solid fa-check me-1"></span>
+                                        Apply These Values
+                                    </button>
+                                    <button @click="dismissResults" class="btn btn-outline-secondary">
+                                        Dismiss
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Configuration Section -->
             <div class="row">
                 <div class="col-md-6">
