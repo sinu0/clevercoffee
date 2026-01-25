@@ -293,28 +293,36 @@ class PIDAutoTune {
         
         /**
          * @brief Detect peaks and valleys in temperature
+         * A peak occurs when temperature stops rising and starts falling
+         * A valley occurs when temperature stops falling and starts rising
          */
         void detectExtremes(double currentTemp) {
-            // Detect rising/falling edge transitions
-            if (risingEdge && currentTemp < lastTemp - MIN_OSCILLATION / 2) {
-                // Found a peak
-                if (peakCount < MAX_PEAKS) {
-                    peakTemps[peakCount] = lastTemp;
-                    peakTimes[peakCount] = millis();
-                    peakCount++;
-                    LOGF(DEBUG, "Peak %d detected: %.2f°C", peakCount, lastTemp);
+            // Detect direction changes with hysteresis
+            if (risingEdge) {
+                // We're rising - check if we've started falling (peak detected)
+                if (currentTemp < lastTemp - MIN_OSCILLATION / 2) {
+                    // Temperature is now falling - we passed a peak at lastTemp
+                    if (peakCount < MAX_PEAKS) {
+                        peakTemps[peakCount] = lastTemp;
+                        peakTimes[peakCount] = millis();
+                        peakCount++;
+                        LOGF(DEBUG, "Peak %d detected: %.2f°C", peakCount, lastTemp);
+                    }
+                    risingEdge = false;
                 }
-                risingEdge = false;
             } 
-            else if (!risingEdge && currentTemp > lastTemp + MIN_OSCILLATION / 2) {
-                // Found a valley
-                if (valleyCount < MAX_PEAKS) {
-                    valleyTemps[valleyCount] = lastTemp;
-                    valleyTimes[valleyCount] = millis();
-                    valleyCount++;
-                    LOGF(DEBUG, "Valley %d detected: %.2f°C", valleyCount, lastTemp);
+            else {
+                // We're falling - check if we've started rising (valley detected)
+                if (currentTemp > lastTemp + MIN_OSCILLATION / 2) {
+                    // Temperature is now rising - we passed a valley at lastTemp
+                    if (valleyCount < MAX_PEAKS) {
+                        valleyTemps[valleyCount] = lastTemp;
+                        valleyTimes[valleyCount] = millis();
+                        valleyCount++;
+                        LOGF(DEBUG, "Valley %d detected: %.2f°C", valleyCount, lastTemp);
+                    }
+                    risingEdge = true;
                 }
-                risingEdge = true;
             }
         }
         
@@ -377,9 +385,9 @@ class PIDAutoTune {
             // for espresso machines to minimize overshoot and ensure stability
             
             // Classic PID (modified for stability):
-            // Kp = 0.45 * Ku (instead of 0.6 * Ku for more conservative control)
-            // Ti = Pu / 1.5 (instead of Pu / 2)
-            // Td = Pu / 8 (instead of Pu / 8)
+            // Kp = 0.45 * Ku (instead of 0.6 * Ku - more conservative control)
+            // Ti = Pu / 1.5 (instead of Pu / 2 - slower integration)
+            // Td = Pu / 8 (standard derivative time)
             
             calculatedKp = 0.45 * ultimateGain;
             double Ti = ultimatePeriod / 1.5;  // Integral time constant

@@ -295,13 +295,23 @@ inline void serverSetup() {
         double kp, tn, tv;
         if (pidAutoTune.getResults(kp, tn, tv)) {
             // Apply the calibration results
-            ParameterRegistry::getInstance().setParameterValue("pid.regular.kp", kp);
-            ParameterRegistry::getInstance().setParameterValue("pid.regular.tn", tn);
-            ParameterRegistry::getInstance().setParameterValue("pid.regular.tv", tv);
-            ParameterRegistry::getInstance().forceSave();
+            // Validate parameters exist before setting
+            auto& registry = ParameterRegistry::getInstance();
+            if (registry.getParameterById("pid.regular.kp") != nullptr &&
+                registry.getParameterById("pid.regular.tn") != nullptr &&
+                registry.getParameterById("pid.regular.tv") != nullptr) {
+                
+                registry.setParameterValue("pid.regular.kp", kp);
+                registry.setParameterValue("pid.regular.tn", tn);
+                registry.setParameterValue("pid.regular.tv", tv);
+                registry.forceSave();
 
-            LOGF(INFO, "Applied calibration results: Kp=%.1f, Tn=%.1f, Tv=%.1f", kp, tn, tv);
-            request->send(200, "application/json", "{\"success\":true,\"message\":\"Calibration results applied\"}");
+                LOGF(INFO, "Applied calibration results: Kp=%.1f, Tn=%.1f, Tv=%.1f", kp, tn, tv);
+                request->send(200, "application/json", "{\"success\":true,\"message\":\"Calibration results applied\"}");
+            } else {
+                LOG(ERROR, "PID parameters not found in registry");
+                request->send(500, "application/json", "{\"success\":false,\"message\":\"PID parameters not found\"}");
+            }
         } else {
             LOG(WARNING, "No calibration results available to apply");
             request->send(400, "application/json", "{\"success\":false,\"message\":\"No calibration results available\"}");

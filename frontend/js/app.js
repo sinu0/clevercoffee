@@ -56,7 +56,6 @@ const vueApp = Vue.createApp({
             this.loadCalibrationTemp();
         }
     },
-    },
 
     methods: {
         async fetchParameters(filter = '') {
