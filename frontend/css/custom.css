@@ -364,9 +364,16 @@ body {
     border-color: var(--primary-color);
 }
 
-/* Smooth Transitions */
-* {
-    transition: background-color 0.2s ease, color 0.2s ease;
+/* Smooth Transitions - Applied to specific elements for better performance */
+button,
+.btn,
+.card,
+.nav-link,
+.form-control,
+.form-select,
+.form-check-input,
+a {
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 /* Improved File Input */
@@ -389,3 +396,6 @@ body {
 .form-control[type="file"]::-webkit-file-upload-button:hover {
     background: var(--primary-hover);
 }
+
+/* Note: Brand icons (fa-brands) require FontAwesome to be loaded with brand support.
+   The fontawesome-6.2.1.min.css includes all icon sets (solid, regular, brands). */
