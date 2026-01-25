@@ -80,6 +80,7 @@ const MOCK_DATA = {
 window.MockAPI = {
     isMockMode: false,
     currentTemperature: MOCK_DATA.currentTemperature,
+    temperatureIntervalId: null,
     
     init() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -100,6 +101,12 @@ window.MockAPI = {
         await new Promise(resolve => setTimeout(resolve, 100));
         
         let filteredParams = [...MOCK_DATA.parameters];
+        
+        // Apply filter if provided (basic implementation)
+        if (filter) {
+            // Filter logic would go here - for now, return all parameters
+            // In real implementation, this would filter by parameter category/section
+        }
         
         // Simple pagination
         const start = offset;
@@ -145,11 +152,20 @@ window.MockAPI = {
     },
     
     startTemperatureSimulation() {
+        // Clear any existing interval
+        if (this.temperatureIntervalId) {
+            clearInterval(this.temperatureIntervalId);
+        }
+        
         // Simulate temperature fluctuation
-        setInterval(() => {
-            // Vary temperature slightly around setpoint
-            const variation = (Math.random() - 0.5) * 2; // ±1°C
-            this.currentTemperature = 92.3 + variation;
+        this.temperatureIntervalId = setInterval(() => {
+            // Get brew setpoint from parameters
+            const brewParam = MOCK_DATA.parameters.find(p => p.name === 'brew.setpoint');
+            const setpoint = brewParam ? brewParam.value : 93.5;
+            
+            // Vary temperature slightly around setpoint (±1°C)
+            const variation = (Math.random() - 0.5) * 2;
+            this.currentTemperature = setpoint - 1.2 + variation; // Slightly below setpoint
             
             // Update display if element exists
             const tempElement = document.getElementById('varTEMP');
@@ -157,6 +173,13 @@ window.MockAPI = {
                 tempElement.textContent = this.currentTemperature.toFixed(1);
             }
         }, 2000);
+    },
+    
+    stopTemperatureSimulation() {
+        if (this.temperatureIntervalId) {
+            clearInterval(this.temperatureIntervalId);
+            this.temperatureIntervalId = null;
+        }
     },
     
     getTemperature() {

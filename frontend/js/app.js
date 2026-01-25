@@ -504,8 +504,9 @@ const vueApp = Vue.createApp({
         toggleFunction(endpoint, paramName, param, targetElement) {
             // Check if mock mode is enabled
             if (window.MockAPI && window.MockAPI.isMockMode) {
-                window.MockAPI.toggleFunction(endpoint, paramName).then(() => {
-                    param.value = param.value === 1 ? 0 : 1;
+                window.MockAPI.toggleFunction(endpoint, paramName).then(result => {
+                    // Mock API already toggled the value, just update the UI
+                    param.value = result.value;
                 });
                 return;
             }
