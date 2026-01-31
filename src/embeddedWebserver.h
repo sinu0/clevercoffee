@@ -18,6 +18,7 @@
 #include <ESPAsyncWebServer.h>
 
 #include "LittleFS.h"
+#include "wakeSchedule.h"
 
 inline AsyncWebServer server(80);
 inline AsyncEventSource events("/events");
@@ -609,6 +610,86 @@ inline void serverSetup() {
 
         delay(100);
         ESP.restart();
+    });
+
+    // Schedule endpoints
+    server.on("/schedule", HTTP_GET, [](AsyncWebServerRequest* request) {
+        if (!authenticate(request)) {
+            return request->requestAuthentication();
+        }
+
+        JsonDocument doc;
+        
+        doc["ntpSynced"] = ntpSynced;
+        doc["timezone"] = timezoneOffset;
+        doc["nextWake"] = nextWakeTime;
+        
+        JsonArray schedulesArray = doc["schedules"].to<JsonArray>();
+        for (int i = 0; i < MAX_SCHEDULES; i++) {
+            JsonObject sched = schedulesArray.add<JsonObject>();
+            sched["enabled"] = schedules[i].enabled;
+            sched["hour"] = schedules[i].hour;
+            sched["minute"] = schedules[i].minute;
+            sched["days"] = schedules[i].daysOfWeek;
+            sched["name"] = schedules[i].name;
+        }
+        
+        String response;
+        serializeJson(doc, response);
+        request->send(200, "application/json", response);
+    });
+
+    server.on("/schedule/update", HTTP_POST, [](AsyncWebServerRequest* request) {
+        if (!authenticate(request)) {
+            return request->requestAuthentication();
+        }
+
+        if (!request->hasParam("index", true)) {
+            request->send(400, "text/plain", "Missing index");
+            return;
+        }
+        
+        uint8_t index = request->getParam("index", true)->value().toInt();
+        if (index >= MAX_SCHEDULES) {
+            request->send(400, "text/plain", "Invalid index");
+            return;
+        }
+        
+        if (request->hasParam("enabled", true)) {
+            schedules[index].enabled = request->getParam("enabled", true)->value() == "true";
+        }
+        if (request->hasParam("hour", true)) {
+            schedules[index].hour = request->getParam("hour", true)->value().toInt();
+        }
+        if (request->hasParam("minute", true)) {
+            schedules[index].minute = request->getParam("minute", true)->value().toInt();
+        }
+        if (request->hasParam("days", true)) {
+            schedules[index].daysOfWeek = request->getParam("days", true)->value().toInt();
+        }
+        if (request->hasParam("name", true)) {
+            String name = request->getParam("name", true)->value();
+            strncpy(schedules[index].name, name.c_str(), sizeof(schedules[index].name) - 1);
+            schedules[index].name[sizeof(schedules[index].name) - 1] = '\0';
+        }
+        
+        saveSchedules();
+        request->send(200, "text/plain", "Schedule updated");
+    });
+
+    server.on("/schedule/timezone", HTTP_POST, [](AsyncWebServerRequest* request) {
+        if (!authenticate(request)) {
+            return request->requestAuthentication();
+        }
+
+        if (request->hasParam("offset", true)) {
+            timezoneOffset = request->getParam("offset", true)->value().toInt();
+            saveSchedules();
+            setupNTP();
+            request->send(200, "text/plain", "Timezone updated");
+        } else {
+            request->send(400, "text/plain", "Missing offset");
+        }
     });
 
     server.onNotFound([](AsyncWebServerRequest* request) { request->send(404, "text/plain", "Not found"); });
