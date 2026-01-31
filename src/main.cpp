@@ -1279,20 +1279,15 @@ void loopPid() {
     }
 
     // Reset stability when entering brew or steam modes
-    static bool firstLoop = true;
-    static MachineState lastMachineState = kPidNormal;
+    // Use a sentinel value that won't match any real state initially
+    static MachineState lastMachineState = static_cast<MachineState>(-1);
     
-    if (firstLoop) {
-        lastMachineState = machineState;
-        firstLoop = false;
-    }
-    
-    if (machineState != lastMachineState) {
+    if (lastMachineState != static_cast<MachineState>(-1) && machineState != lastMachineState) {
         if (machineState == kBrew || machineState == kSteam || machineState == kManualFlush || machineState == kHotWater) {
             resetStability();
         }
-        lastMachineState = machineState;
     }
+    lastMachineState = machineState;
 
     static bool wifiWasConnected = false;
 
