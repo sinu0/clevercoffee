@@ -1533,9 +1533,9 @@ void loopLED() {
     
     if (config.get<bool>("hardware.leds.status.enabled") && statusLed != nullptr) {
         // LED blink when temperature is ready
-        if (tempReadyEnabled && tempReadyLedBlink && tempStability.isStable && machineState == kPidNormal) {
+        if (tempReadyLedBlink && isTempReadyIndicatorActive()) {
             // Handle millis() rollover correctly
-            if ((unsigned long)(millis() - lastBlink) > 1000) {
+            if ((unsigned long)(millis() - lastBlink) > TEMP_READY_BLINK_INTERVAL_MS) {
                 ledState = !ledState;
                 if (ledState) {
                     statusLed->turnOn();

@@ -11,6 +11,7 @@
 #include <Arduino.h>
 
 #define TEMP_READINGS_BUFFER 10
+#define TEMP_READY_BLINK_INTERVAL_MS 1000
 
 struct TempStability {
     double readings[TEMP_READINGS_BUFFER];  // Last 10 temperature readings
@@ -31,5 +32,6 @@ void addTempReading(double temperature, double setpoint);
 bool checkTempStability(double setpoint);
 double calculateStdDev();
 void resetStability();
+bool isTempReadyIndicatorActive();
 
 #endif // TEMP_STABILITY_H

@@ -61,7 +61,7 @@ inline void printScreen() {
     u8g2->print("C");
 
     // Temperature ready indicator
-    if (tempReadyEnabled && tempStability.isStable && machineState == kPidNormal && !steamON) {
+    if (isTempReadyIndicatorActive()) {
         u8g2->setFont(u8g2_font_profont10_tf);
         u8g2->setCursor(100, 36);
         u8g2->print("READY");

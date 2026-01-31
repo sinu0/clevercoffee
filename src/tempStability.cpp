@@ -76,8 +76,15 @@ bool checkTempStability(double setpoint) {
         }
         
         // Check if stable for required duration
-        // Use unsigned arithmetic that handles millis() rollover correctly
+        // Properly handle millis() rollover by checking if we've exceeded a reasonable maximum
+        // If the calculated duration is > 1 hour, assume rollover occurred and we're just starting
         unsigned long stableDuration = (unsigned long)(now - tempStability.stableStartTime) / 1000;
+        if (stableDuration > 3600) {
+            // Likely a rollover, reset the start time
+            tempStability.stableStartTime = now;
+            stableDuration = 0;
+        }
+        
         if (stableDuration >= tempStability.stabilityDuration) {
             if (!tempStability.isStable) {
                 tempStability.isStable = true;
@@ -119,4 +126,12 @@ void resetStability() {
     tempStability.readingCount = 0;
     tempStability.readingIndex = 0;
     memset(tempStability.readings, 0, sizeof(tempStability.readings));
+}
+
+bool isTempReadyIndicatorActive() {
+    extern bool tempReadyEnabled;
+    extern bool steamON;
+    extern MachineState machineState;
+    
+    return tempReadyEnabled && tempStability.isStable && machineState == kPidNormal && !steamON;
 }
