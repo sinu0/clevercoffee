@@ -424,6 +424,8 @@ inline void serverSetup() {
     });
 
     server.on("/temperatures", HTTP_GET, [](AsyncWebServerRequest* request) {
+        extern TempStability tempStability;
+        
         AsyncResponseStream* response = request->beginResponseStream("application/json");
         response->print('{');
         response->print("\"currentTemp\":");
@@ -432,6 +434,10 @@ inline void serverSetup() {
         response->print(tTemp, 2);
         response->print(",\"heaterPower\":");
         response->print(hPower, 2);
+        response->print(",\"tempReady\":");
+        response->print(tempStability.isStable ? "true" : "false");
+        response->print(",\"tempStdDev\":");
+        response->print(calculateStdDev(), 3);
         response->print('}');
         request->send(response);
     });
