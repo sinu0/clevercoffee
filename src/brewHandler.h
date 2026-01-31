@@ -14,6 +14,7 @@
 
 #include "brewStates.h"
 #include "scaleHandler.h"
+#include <algorithm>
 
 // Brew control states
 inline BrewSwitchState currBrewSwitchState = kBrewSwitchIdle;
@@ -29,10 +30,17 @@ inline bool brewSwitchWasOff = false;
 inline double targetBrewTime = TARGET_BREW_TIME;          // brew time in s
 inline double preinfusion = PRE_INFUSION_TIME;            // preinfusion time in s
 inline double preinfusionPause = PRE_INFUSION_PAUSE_TIME; // preinfusion pause time in s
+inline int preinfusionMode = PRE_INFUSION_MODE;           // 0 = Single, 1 = Pulse
+inline double preinfusionPulseOn = PRE_INFUSION_PULSE_ON_TIME;   // pulse ON time in s
+inline double preinfusionPulseOff = PRE_INFUSION_PULSE_OFF_TIME; // pulse OFF time in s
+inline int preinfusionPulseCycles = PRE_INFUSION_PULSE_CYCLES;   // number of pulses
+inline double preinfusionSoak = PRE_INFUSION_SOAK_TIME;          // soak time in s
 inline double totalTargetBrewTime = 0;                    // total target brew time including preinfusion and preinfusion pause
 inline double currBrewTime = 0;                           // current running total brewed time
 inline unsigned long startingTime = 0;                    // start time of brew
 inline bool brewPidDisabled = false;                      // is PID disabled for delay after brew has started?
+inline int currPreinfusionPulse = 0;                      // current preinfusion pulse count
+inline unsigned long preinfusionPhaseStartMillis = 0;      // start time of current preinfusion phase
 
 // Backflush values
 inline int backflushCycles = BACKFLUSH_CYCLES;
@@ -231,6 +239,7 @@ inline bool brew() {
     const bool brewByTimeEnabled = brewMode != 0 && config.get<bool>("brew.by_time.enabled");
     const bool brewByWeightEnabled = brewMode != 0 && config.get<bool>("brew.by_weight.enabled");
     const bool preinfusionEnabled = config.get<bool>("brew.pre_infusion.enabled");
+    const int activePreinfusionMode = preinfusionMode;
 
     // check if brewswitch was turned off after a brew; Brew only runs once even brewswitch is still pressed
     if (currBrewSwitchState == kBrewSwitchIdle) {
@@ -242,7 +251,13 @@ inline bool brew() {
         totalTargetBrewTime = targetBrewTime * 1000;
 
         if (preinfusionEnabled) {
-            totalTargetBrewTime += preinfusion * 1000 + preinfusionPause * 1000;
+            if (activePreinfusionMode == 1) {
+                const double pulseTotal = std::max(0, preinfusionPulseCycles) * (std::max(0.0, preinfusionPulseOn) + std::max(0.0, preinfusionPulseOff));
+                totalTargetBrewTime += (pulseTotal + std::max(0.0, preinfusionSoak)) * 1000;
+            }
+            else {
+                totalTargetBrewTime += preinfusion * 1000 + preinfusionPause * 1000;
+            }
         }
     }
     else {
@@ -260,13 +275,38 @@ inline bool brew() {
 
                 LOG(INFO, "Brew started");
 
+                currPreinfusionPulse = 0;
+                preinfusionPhaseStartMillis = startingTime;
+
                 if (!preinfusionEnabled) {
                     LOG(INFO, "Brew running");
                     currBrewState = kBrewRunning;
                 }
+                else if (activePreinfusionMode == 1) {
+                    if (preinfusionPulseCycles <= 0 || preinfusionPulseOn <= 0) {
+                        if (preinfusionSoak > 0) {
+                            LOG(INFO, "Preinfusion soak running");
+                            currBrewState = kPreinfusionSoak;
+                        }
+                        else {
+                            LOG(INFO, "Brew running");
+                            currBrewState = kBrewRunning;
+                        }
+                    }
+                    else {
+                        LOG(INFO, "Preinfusion pulse running");
+                        currBrewState = kPreinfusionPulseOn;
+                    }
+                }
                 else if (preinfusion == 0) {
-                    LOG(INFO, "Preinfusion was zero, Preinfusion pause running");
-                    currBrewState = kPreinfusionPause;
+                    if (preinfusionPause > 0) {
+                        LOG(INFO, "Preinfusion was zero, Preinfusion pause running");
+                        currBrewState = kPreinfusionPause;
+                    }
+                    else {
+                        LOG(INFO, "Brew running");
+                        currBrewState = kBrewRunning;
+                    }
                 }
                 else {
                     LOG(INFO, "Preinfusion running");
@@ -308,12 +348,61 @@ inline bool brew() {
 
             break;
 
+        case kPreinfusionPulseOn:
+            valveRelay->on();
+            pumpRelay->on();
+            debugPumpState("PreinfusionPulseOn", "on");
+
+            if ((currentMillisTemp - preinfusionPhaseStartMillis) > preinfusionPulseOn * 1000) {
+                currBrewState = kPreinfusionPulseOff;
+                preinfusionPhaseStartMillis = currentMillisTemp;
+            }
+
+            break;
+
+        case kPreinfusionPulseOff:
+            valveRelay->on();
+            pumpRelay->off();
+            debugPumpState("PreinfusionPulseOff", "off");
+
+            if ((currentMillisTemp - preinfusionPhaseStartMillis) > preinfusionPulseOff * 1000) {
+                currPreinfusionPulse++;
+
+                if (currPreinfusionPulse >= preinfusionPulseCycles) {
+                    if (preinfusionSoak > 0) {
+                        currBrewState = kPreinfusionSoak;
+                    }
+                    else {
+                        currBrewState = kBrewRunning;
+                    }
+                }
+                else {
+                    currBrewState = kPreinfusionPulseOn;
+                }
+
+                preinfusionPhaseStartMillis = currentMillisTemp;
+            }
+
+            break;
+
         case kPreinfusionPause:
             valveRelay->on();
             pumpRelay->off();
             debugPumpState("Pause", "off");
 
             if (currBrewTime > (preinfusion + preinfusionPause) * 1000) {
+                LOG(INFO, "Brew running");
+                currBrewState = kBrewRunning;
+            }
+
+            break;
+
+        case kPreinfusionSoak:
+            valveRelay->on();
+            pumpRelay->off();
+            debugPumpState("PreinfusionSoak", "off");
+
+            if ((currentMillisTemp - preinfusionPhaseStartMillis) > preinfusionSoak * 1000) {
                 LOG(INFO, "Brew running");
                 currBrewState = kBrewRunning;
             }

@@ -26,6 +26,11 @@ extern double steamSetpoint;
 extern double targetBrewTime;
 extern double preinfusion;
 extern double preinfusionPause;
+extern int preinfusionMode;
+extern double preinfusionPulseOn;
+extern double preinfusionPulseOff;
+extern int preinfusionPulseCycles;
+extern double preinfusionSoak;
 extern int backflushCycles;
 extern double backflushFillTime;
 extern double backflushFlushTime;
@@ -51,6 +56,7 @@ const char* switchModes[2] = {"Normally Open", "Normally Closed"};
 const char* relayTriggerTypes[2] = {"Low Trigger", "High Trigger"};
 
 static constexpr const char* const brewModes[] = {"Manual", "Automatic"};
+static constexpr const char* const preinfusionModes[] = {"Single", "Pulse"};
 static constexpr const char* const displayTemplates[] = {"Standard", "Minimal", "Temp only", "Scale", "Upright"};
 static constexpr const char* const displayLanguages[] = {"Deutsch", "English", "Español"};
 static constexpr const char* const blinkingModes[] = {"Off", "Near Setpoint", "Away From Setpoint"};
@@ -298,6 +304,17 @@ void ParameterRegistry::initialize(Config& config) {
             "Enables pre-wetting of the coffee puck by turning on the pump for a configurable length of time."
         );
 
+        addEnumConfigParam(
+            "brew.pre_infusion.mode",
+            "Pre-infusion Mode",
+            sBrewSection,
+            330,
+            &preinfusionMode,
+            preinfusionModes,
+            2,
+            "Selects pre-infusion mode: Single (continuous) or Pulse."
+        );
+
         addNumericConfigParam<double>(
             "brew.pre_infusion.time",
             "Pre-infusion Time (s)",
@@ -320,6 +337,58 @@ void ParameterRegistry::initialize(Config& config) {
             PRE_INFUSION_PAUSE_MIN,
             PRE_INFUSION_PAUSE_MAX,
             "Pause to let the puck bloom after the initial pre-infusion while turning off the pump and leaving the 3-way valve open"
+        );
+
+        addNumericConfigParam<double>(
+            "brew.pre_infusion.pulse.on_time",
+            "Pulse ON Time (s)",
+            kDouble,
+            sBrewSection,
+            334,
+            &preinfusionPulseOn,
+            PRE_INFUSION_PULSE_ON_MIN,
+            PRE_INFUSION_PULSE_ON_MAX,
+            "Pump ON time for each pre-infusion pulse",
+            [&config] { return config.get<int>("brew.pre_infusion.mode") == 1; }
+        );
+
+        addNumericConfigParam<double>(
+            "brew.pre_infusion.pulse.off_time",
+            "Pulse OFF Time (s)",
+            kDouble,
+            sBrewSection,
+            335,
+            &preinfusionPulseOff,
+            PRE_INFUSION_PULSE_OFF_MIN,
+            PRE_INFUSION_PULSE_OFF_MAX,
+            "Pump OFF time between pre-infusion pulses",
+            [&config] { return config.get<int>("brew.pre_infusion.mode") == 1; }
+        );
+
+        addNumericConfigParam<int>(
+            "brew.pre_infusion.pulse.cycles",
+            "Pulse Cycles",
+            kInteger,
+            sBrewSection,
+            336,
+            &preinfusionPulseCycles,
+            PRE_INFUSION_PULSE_CYCLES_MIN,
+            PRE_INFUSION_PULSE_CYCLES_MAX,
+            "Number of pre-infusion pulses",
+            [&config] { return config.get<int>("brew.pre_infusion.mode") == 1; }
+        );
+
+        addNumericConfigParam<double>(
+            "brew.pre_infusion.soak_time",
+            "Soak Time (s)",
+            kDouble,
+            sBrewSection,
+            337,
+            &preinfusionSoak,
+            PRE_INFUSION_SOAK_MIN,
+            PRE_INFUSION_SOAK_MAX,
+            "Soak time after pulse pre-infusion",
+            [&config] { return config.get<int>("brew.pre_infusion.mode") == 1; }
         );
 
         // Maintenance Section

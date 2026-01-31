@@ -267,8 +267,13 @@ class Config {
 
             // Pre-infusion
             _configDefs.emplace("brew.pre_infusion.enabled", ConfigDef::forBool(false));
+            _configDefs.emplace("brew.pre_infusion.mode", ConfigDef::forInt(PRE_INFUSION_MODE, PRE_INFUSION_MODE_MIN, PRE_INFUSION_MODE_MAX));
             _configDefs.emplace("brew.pre_infusion.time", ConfigDef::forDouble(PRE_INFUSION_TIME, PRE_INFUSION_TIME_MIN, PRE_INFUSION_TIME_MAX));
             _configDefs.emplace("brew.pre_infusion.pause", ConfigDef::forDouble(PRE_INFUSION_PAUSE_TIME, PRE_INFUSION_PAUSE_MIN, PRE_INFUSION_PAUSE_MAX));
+            _configDefs.emplace("brew.pre_infusion.pulse.on_time", ConfigDef::forDouble(PRE_INFUSION_PULSE_ON_TIME, PRE_INFUSION_PULSE_ON_MIN, PRE_INFUSION_PULSE_ON_MAX));
+            _configDefs.emplace("brew.pre_infusion.pulse.off_time", ConfigDef::forDouble(PRE_INFUSION_PULSE_OFF_TIME, PRE_INFUSION_PULSE_OFF_MIN, PRE_INFUSION_PULSE_OFF_MAX));
+            _configDefs.emplace("brew.pre_infusion.pulse.cycles", ConfigDef::forInt(PRE_INFUSION_PULSE_CYCLES, PRE_INFUSION_PULSE_CYCLES_MIN, PRE_INFUSION_PULSE_CYCLES_MAX));
+            _configDefs.emplace("brew.pre_infusion.soak_time", ConfigDef::forDouble(PRE_INFUSION_SOAK_TIME, PRE_INFUSION_SOAK_MIN, PRE_INFUSION_SOAK_MAX));
 
             // Steam
             _configDefs.emplace("steam.setpoint", ConfigDef::forDouble(STEAMSETPOINT, STEAM_SETPOINT_MIN, STEAM_SETPOINT_MAX));

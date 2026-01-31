@@ -1092,6 +1092,11 @@ void setup() {
                 mqttVars["targetBrewTime"] = "brew.by_time.target_time";
                 mqttVars["preinfusion"] = "brew.pre_infusion.time";
                 mqttVars["preinfusionPause"] = "brew.pre_infusion.pause";
+                mqttVars["preinfusionMode"] = "brew.pre_infusion.mode";
+                mqttVars["preinfusionPulseOn"] = "brew.pre_infusion.pulse.on_time";
+                mqttVars["preinfusionPulseOff"] = "brew.pre_infusion.pulse.off_time";
+                mqttVars["preinfusionPulseCycles"] = "brew.pre_infusion.pulse.cycles";
+                mqttVars["preinfusionSoak"] = "brew.pre_infusion.soak_time";
                 mqttVars["backflushOn"] = "BACKFLUSH_ON";
                 mqttVars["backflushCycles"] = "backflush.cycles";
                 mqttVars["backflushFillTime"] = "backflush.fill_time";

@@ -88,6 +88,14 @@ This document describes all configuration parameters available in the `config.js
 - **Default**: `false`
 - **Description**: Enables pre-wetting of the coffee puck by turning on the pump for a configurable length of time
 
+### `brew.pre_infusion.mode`
+- **Type**: Integer (enum)
+- **Default**: `0`
+- **Valid Values**:
+    - `0`: Single (continuous)
+    - `1`: Pulse
+- **Description**: Selects the pre-infusion mode
+
 ### `brew.pre_infusion.time`
 - **Type**: Double (seconds)
 - **Default**: `2.0`
@@ -98,7 +106,31 @@ This document describes all configuration parameters available in the `config.js
 - **Type**: Double (seconds)
 - **Default**: `5.0`
 - **Range**: 0.0-60.0
-- **Description**: Pause duration after pre-infusion
+- **Description**: Pause duration after single-mode pre-infusion
+
+### `brew.pre_infusion.pulse.on_time`
+- **Type**: Double (seconds)
+- **Default**: `0.6`
+- **Range**: 0.0-10.0
+- **Description**: Pump ON time for each pre-infusion pulse
+
+### `brew.pre_infusion.pulse.off_time`
+- **Type**: Double (seconds)
+- **Default**: `0.8`
+- **Range**: 0.0-10.0
+- **Description**: Pump OFF time between pre-infusion pulses
+
+### `brew.pre_infusion.pulse.cycles`
+- **Type**: Integer
+- **Default**: `3`
+- **Range**: 1-10
+- **Description**: Number of pre-infusion pulses
+
+### `brew.pre_infusion.soak_time`
+- **Type**: Double (seconds)
+- **Default**: `5.0`
+- **Range**: 0.0-60.0
+- **Description**: Soak time after pulse pre-infusion
 
 ---
 

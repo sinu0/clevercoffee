@@ -16,7 +16,10 @@ enum BrewSwitchState {
 enum BrewState {
     kBrewIdle = 10,
     kPreinfusion = 20,
+    kPreinfusionPulseOn = 25,
+    kPreinfusionPulseOff = 27,
     kPreinfusionPause = 30,
+    kPreinfusionSoak = 35,
     kBrewRunning = 40,
     kBrewFinished = 50,
 };

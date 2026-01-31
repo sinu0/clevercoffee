@@ -34,6 +34,11 @@
 #define BREW_PID_DELAY           10.0              // delay until enabling PID controller during brew (no heating during this time)
 #define PRE_INFUSION_TIME        2.0               // pre-infusion time in seconds
 #define PRE_INFUSION_PAUSE_TIME  5.0               // pre-infusion pause time in seconds
+#define PRE_INFUSION_MODE        0                 // 0 = Single, 1 = Pulse
+#define PRE_INFUSION_PULSE_ON_TIME  0.6            // pre-infusion pulse ON time in seconds
+#define PRE_INFUSION_PULSE_OFF_TIME 0.8            // pre-infusion pulse OFF time in seconds
+#define PRE_INFUSION_PULSE_CYCLES   3              // number of pre-infusion pulses
+#define PRE_INFUSION_SOAK_TIME      5.0            // soak time after pulse pre-infusion in seconds
 #define TARGET_BREW_WEIGHT       36.0              // Target weight in grams
 #define STANDBY_MODE_TIME        35.0              // Time in minutes until the heater is turned off
 #define BACKFLUSH_CYCLES         5                 // number of cycles the backflush should run
@@ -82,6 +87,16 @@
 #define PRE_INFUSION_TIME_MAX         60.0
 #define PRE_INFUSION_PAUSE_MIN        0.0
 #define PRE_INFUSION_PAUSE_MAX        60.0
+#define PRE_INFUSION_MODE_MIN         0
+#define PRE_INFUSION_MODE_MAX         1
+#define PRE_INFUSION_PULSE_ON_MIN     0.0
+#define PRE_INFUSION_PULSE_ON_MAX     10.0
+#define PRE_INFUSION_PULSE_OFF_MIN    0.0
+#define PRE_INFUSION_PULSE_OFF_MAX    10.0
+#define PRE_INFUSION_PULSE_CYCLES_MIN 1
+#define PRE_INFUSION_PULSE_CYCLES_MAX 10
+#define PRE_INFUSION_SOAK_MIN         0.0
+#define PRE_INFUSION_SOAK_MAX         60.0
 #define TARGET_BREW_WEIGHT_MIN        0.0
 #define TARGET_BREW_WEIGHT_MAX        500.0
 #define PID_KP_STEAM_MIN              0.0
