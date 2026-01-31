@@ -68,6 +68,32 @@
                     </form>
                 </div>
             </div>
+            
+            <!-- Brew Phase Info Card -->
+            <div id="brew-info" class="card card-accent-dark mb-5 pb-0 shadow-sm rounded" style="display: none;">
+                <div class="card-body bg-light pb-1 rounded">
+                    <h5 class="card-title">
+                        Brew Phase
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h5 id="brew-phase-name">BREWING</h5>
+                    <div class="progress mb-3" style="height: 25px;">
+                        <div id="phase-progress" class="progress-bar progress-bar-striped progress-bar-animated bg-success" 
+                             role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Phase Time</small><br>
+                            <strong id="phase-time">0.0s</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Total Time</small><br>
+                            <strong id="total-time">0.0s</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div class="card card-accent-dark mb-5 pb-0 shadow-sm rounded">
                 <div class="card-body bg-light pb-1 rounded">
