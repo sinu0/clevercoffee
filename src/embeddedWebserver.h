@@ -625,11 +625,13 @@ inline void serverSetup() {
         doc["monthlyShots"] = brewStats.monthlyShots;
         doc["avgBrewTime"] = brewStats.avgBrewTime;
         doc["avgWeight"] = brewStats.avgWeight;
+        doc["currentUptime"] = millis() / 1000;  // Current device uptime in seconds
 
         JsonArray shots = doc.createNestedArray("lastShots");
 
+        // Iterate from newest to oldest
         for (int i = 0; i < 10; i++) {
-            int idx = (brewStats.lastShotIndex + i) % 10;
+            int idx = (brewStats.lastShotIndex - 1 - i + 10) % 10;
 
             if (brewStats.lastShots[idx].timestamp > 0) {
                 JsonObject shot = shots.createNestedObject();

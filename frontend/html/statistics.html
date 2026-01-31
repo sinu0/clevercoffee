@@ -149,7 +149,8 @@
                         avgBrewTime: 0,
                         avgWeight: 0,
                         lastShots: []
-                    }
+                    },
+                    currentUptime: 0  // Track current device uptime
                 };
             },
             mounted() {
@@ -163,6 +164,7 @@
                     try {
                         const response = await fetch('/statistics');
                         this.stats = await response.json();
+                        this.currentUptime = this.stats.currentUptime || 0;
                     } catch (error) {
                         console.error('Failed to load statistics:', error);
                     }
@@ -183,9 +185,28 @@
                     }
                 },
                 formatTimestamp(ts) {
-                    if (!ts) return '-';
-                    const date = new Date(ts * 1000);
-                    return date.toLocaleString();
+                    if (!ts || !this.currentUptime) return '-';
+                    
+                    // Calculate how long ago the shot was taken
+                    const secondsAgo = this.currentUptime - ts;
+                    
+                    if (secondsAgo < 0) return 'Just now';
+                    
+                    const hours = Math.floor(secondsAgo / 3600);
+                    const minutes = Math.floor((secondsAgo % 3600) / 60);
+                    const seconds = secondsAgo % 60;
+                    
+                    if (hours > 24) {
+                        const days = Math.floor(hours / 24);
+                        const remainingHours = hours % 24;
+                        return `${days}d ${remainingHours}h ago`;
+                    } else if (hours > 0) {
+                        return `${hours}h ${minutes}m ago`;
+                    } else if (minutes > 0) {
+                        return `${minutes}m ago`;
+                    } else {
+                        return `${seconds}s ago`;
+                    }
                 },
                 getModeText(mode) {
                     const modes = ['Off', 'Preinfusion', 'Pulse'];

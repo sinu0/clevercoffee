@@ -23,13 +23,15 @@ struct BrewStatistics {
     double avgWeight;           // Average shot weight (if scale enabled)
 
     // Reset timestamps
-    uint32_t lastResetTimestamp;   // Last daily reset timestamp
-    uint32_t weekStartTimestamp;   // Week start for weekly counter
-    uint32_t monthStartTimestamp;  // Month start for monthly counter
+    uint32_t lastResetTimestamp;   // Last daily reset timestamp (seconds since boot via millis()/1000)
+    uint32_t weekStartTimestamp;   // Week start for weekly counter (seconds since boot)
+    uint32_t monthStartTimestamp;  // Month start for monthly counter (seconds since boot)
+                                    // NOTE: These use uptime, not calendar time. Resets are based on elapsed time
+                                    // since last reset, not actual midnight/Monday/month boundaries.
 
     // Last 10 shots circular buffer
     struct ShotRecord {
-        uint32_t timestamp;
+        uint32_t timestamp;         // Seconds since boot (millis()/1000) - resets on device restart
         double brewTime;
         double weight;
         double temperature;
