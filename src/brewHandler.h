@@ -14,6 +14,7 @@
 
 #include "brewStates.h"
 #include "scaleHandler.h"
+#include "brewStats.h"
 
 // Brew control states
 inline BrewSwitchState currBrewSwitchState = kBrewSwitchIdle;
@@ -353,7 +354,6 @@ inline bool brew() {
                 LOGF(INFO, "Shot time: %4.1f s", currBrewTime / 1000);
                 
                 // Record shot statistics
-                #include "brewStats.h"
                 recordShot(
                     currBrewTime / 1000.0,  // Convert ms to seconds
                     currBrewWeight,

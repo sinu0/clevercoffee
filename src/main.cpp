@@ -1155,7 +1155,6 @@ void setup() {
     Logger::setLevel(static_cast<Logger::Level>(level));
 
     // Initialize brew statistics
-    #include "brewStats.h"
     initBrewStats();
 
     // Initialize PID controller
