@@ -76,7 +76,8 @@ bool checkTempStability(double setpoint) {
         }
         
         // Check if stable for required duration
-        unsigned long stableDuration = (now - tempStability.stableStartTime) / 1000;
+        // Use unsigned arithmetic that handles millis() rollover correctly
+        unsigned long stableDuration = (unsigned long)(now - tempStability.stableStartTime) / 1000;
         if (stableDuration >= tempStability.stabilityDuration) {
             if (!tempStability.isStable) {
                 tempStability.isStable = true;
