@@ -97,6 +97,9 @@ bool featureFullscreenHotWaterTimer = false;
 double postBrewTimerDuration = POST_BREW_TIMER_DURATION;
 bool featureHeatingLogo = false;
 
+// Maintenance
+constexpr unsigned long MILLISECONDS_PER_DAY = 86400000UL;  // 24 hours in milliseconds
+
 // WiFi
 WiFiManager wm;
 constexpr unsigned long wifiConnectionDelay = WIFICONNECTIONDELAY;
@@ -1242,7 +1245,7 @@ void loop() {
     // Check daily maintenance (once per day)
     // Note: millis() overflow is handled correctly by unsigned arithmetic
     static unsigned long lastMaintenanceCheck = 0;
-    if (millis() - lastMaintenanceCheck > 86400000) {  // 24 hours
+    if (millis() - lastMaintenanceCheck > MILLISECONDS_PER_DAY) {
         checkDailyMaintenance();
         lastMaintenanceCheck = millis();
     }
