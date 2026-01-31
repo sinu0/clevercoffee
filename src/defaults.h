@@ -15,8 +15,8 @@
 #define HOSTNAME                 "silvia"          // default hostname
 #define OTAPASS                  "otapass"         // default password for over-the-air updates
 #define WM_PASS                  "CleverCoffee"    // default password for WiFiManager
-#define SETPOINT                 95.0              // brew temperature setpoint
-#define TEMPOFFSET               0.0               // brew temperature setpoint
+#define SETPOINT                 92.0              // brew temperature setpoint
+#define TEMPOFFSET               12.0               // brew temperature setpoint
 #define STEAMSETPOINT            120.0             // steam temperature setpoint
 #define SCALE_CALIBRATION_FACTOR 1.00              // Raw data is divided by this value to convert to readable data
 #define SCALE_KNOWN_WEIGHT       267.00            // Calibration weight for scale (weight of the tray)
@@ -35,7 +35,7 @@
 #define PRE_INFUSION_TIME        2.0               // pre-infusion time in seconds
 #define PRE_INFUSION_PAUSE_TIME  5.0               // pre-infusion pause time in seconds
 #define TARGET_BREW_WEIGHT       36.0              // Target weight in grams
-#define STANDBY_MODE_TIME        35.0              // Time in minutes until the heater is turned off
+#define STANDBY_MODE_TIME        300.0              // Time in minutes until the heater is turned off
 #define BACKFLUSH_CYCLES         5                 // number of cycles the backflush should run
 #define BACKFLUSH_FILL_TIME      5.0               // time in seconds the pump is running during backflush
 #define BACKFLUSH_FLUSH_TIME     10.0              // time in seconds the 3-way valve is open during backflush
@@ -87,7 +87,7 @@
 #define PID_KP_STEAM_MIN              0.0
 #define PID_KP_STEAM_MAX              999.0
 #define STANDBY_MODE_TIME_MIN         1.0
-#define STANDBY_MODE_TIME_MAX         120.0
+#define STANDBY_MODE_TIME_MAX         520.0
 #define BACKFLUSH_CYCLES_MIN          2
 #define BACKFLUSH_CYCLES_MAX          20
 #define BACKFLUSH_FILL_TIME_MIN       3.0
@@ -110,6 +110,6 @@
 #define MQTT_TOPIC_MAX_LENGTH         48
 #define MQTT_HASSIO_PREFIX_MAX_LENGTH 24
 #define HOSTNAME_MAX_LENGTH           64
-#define PID_CALIBRATION_TEMP          95.0             // default temperature for PID calibration
+#define PID_CALIBRATION_TEMP          92.0             // default temperature for PID calibration
 #define PID_CALIBRATION_TEMP_MIN      70.0
 #define PID_CALIBRATION_TEMP_MAX      110.0
