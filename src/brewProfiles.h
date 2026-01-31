@@ -12,6 +12,7 @@
 
 #define MAX_PROFILES 5
 #define PROFILE_NAME_LENGTH 20
+#define NO_ACTIVE_PROFILE 0xFF
 
 struct BrewProfile {
     char name[PROFILE_NAME_LENGTH];  // User-defined name

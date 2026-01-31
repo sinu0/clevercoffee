@@ -663,8 +663,15 @@ inline void serverSetup() {
         }
 
         if (request->hasParam("index", true)) {
-            uint8_t index = request->getParam("index", true)->value().toInt();
-            loadProfile(index);
+            int index = request->getParam("index", true)->value().toInt();
+            
+            // Validate index range
+            if (index < 0 || index >= MAX_PROFILES) {
+                request->send(400, "text/plain", "Invalid profile index");
+                return;
+            }
+            
+            loadProfile(static_cast<uint8_t>(index));
             request->send(200, "text/plain", "Profile loaded");
         } else {
             request->send(400, "text/plain", "Missing index");
@@ -677,9 +684,23 @@ inline void serverSetup() {
         }
 
         if (request->hasParam("index", true) && request->hasParam("name", true)) {
-            uint8_t index = request->getParam("index", true)->value().toInt();
+            int index = request->getParam("index", true)->value().toInt();
+            
+            // Validate index range
+            if (index < 0 || index >= MAX_PROFILES) {
+                request->send(400, "text/plain", "Invalid profile index");
+                return;
+            }
+            
             String name = request->getParam("name", true)->value();
-            saveCurrentAsProfile(index, name.c_str());
+            
+            // Validate name length
+            if (name.length() == 0 || name.length() >= PROFILE_NAME_LENGTH) {
+                request->send(400, "text/plain", "Invalid profile name");
+                return;
+            }
+            
+            saveCurrentAsProfile(static_cast<uint8_t>(index), name.c_str());
             request->send(200, "text/plain", "Profile saved");
         } else {
             request->send(400, "text/plain", "Missing parameters");
@@ -692,8 +713,15 @@ inline void serverSetup() {
         }
 
         if (request->hasParam("index", true)) {
-            uint8_t index = request->getParam("index", true)->value().toInt();
-            deleteProfile(index);
+            int index = request->getParam("index", true)->value().toInt();
+            
+            // Validate index range
+            if (index < 0 || index >= MAX_PROFILES) {
+                request->send(400, "text/plain", "Invalid profile index");
+                return;
+            }
+            
+            deleteProfile(static_cast<uint8_t>(index));
             request->send(200, "text/plain", "Profile deleted");
         } else {
             request->send(400, "text/plain", "Missing index");
@@ -706,9 +734,23 @@ inline void serverSetup() {
         }
 
         if (request->hasParam("index", true) && request->hasParam("name", true)) {
-            uint8_t index = request->getParam("index", true)->value().toInt();
+            int index = request->getParam("index", true)->value().toInt();
+            
+            // Validate index range
+            if (index < 0 || index >= MAX_PROFILES) {
+                request->send(400, "text/plain", "Invalid profile index");
+                return;
+            }
+            
             String name = request->getParam("name", true)->value();
-            renameProfile(index, name.c_str());
+            
+            // Validate name length
+            if (name.length() == 0 || name.length() >= PROFILE_NAME_LENGTH) {
+                request->send(400, "text/plain", "Invalid profile name");
+                return;
+            }
+            
+            renameProfile(static_cast<uint8_t>(index), name.c_str());
             request->send(200, "text/plain", "Profile renamed");
         } else {
             request->send(400, "text/plain", "Missing parameters");

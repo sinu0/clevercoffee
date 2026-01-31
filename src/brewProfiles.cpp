@@ -11,7 +11,7 @@
 #include <Preferences.h>
 
 BrewProfile profiles[MAX_PROFILES];
-uint8_t activeProfileIndex = 0xFF;  // No profile active initially
+uint8_t activeProfileIndex = NO_ACTIVE_PROFILE;  // No profile active initially
 Preferences profilePrefs;
 
 // External references to global config variables
@@ -58,7 +58,7 @@ void loadProfiles() {
         saveProfiles();
     }
     
-    activeProfileIndex = profilePrefs.getUChar("activeIndex", 0xFF);
+    activeProfileIndex = profilePrefs.getUChar("activeIndex", NO_ACTIVE_PROFILE);
 }
 
 void saveProfiles() {
@@ -173,7 +173,7 @@ void deleteProfile(uint8_t index) {
     profiles[index].active = false;
     
     if (activeProfileIndex == index) {
-        activeProfileIndex = 0xFF;
+        activeProfileIndex = NO_ACTIVE_PROFILE;
     }
     
     saveProfiles();

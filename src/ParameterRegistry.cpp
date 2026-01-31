@@ -499,7 +499,8 @@ void ParameterRegistry::initialize(Config& config) {
         ));
     }
 
-    // Brew Profiles - special parameter for loading profiles via MQTT
+    // Brew Profiles - special write-only parameter for loading profiles via MQTT
+    // This parameter triggers profile loading when a value is written to it via MQTT commands
     addParam(std::make_shared<Parameter>(
         "PROFILE_LOAD",
         "Load Profile",
@@ -507,7 +508,7 @@ void ParameterRegistry::initialize(Config& config) {
         sOtherSection,
         505,
         []() -> bool {
-            return false;  // Not used for reading
+            return false;  // Write-only parameter, getter not used
         },
         [](const uint8_t val) {
             loadProfile(val);
