@@ -18,6 +18,7 @@
 #include <ESPAsyncWebServer.h>
 
 #include "LittleFS.h"
+#include "maintenance.h"
 
 inline AsyncWebServer server(80);
 inline AsyncEventSource events("/events");
@@ -609,6 +610,73 @@ inline void serverSetup() {
 
         delay(100);
         ESP.restart();
+    });
+
+    // GET /maintenance - Get maintenance status
+    server.on("/maintenance", HTTP_GET, [](AsyncWebServerRequest* request) {
+        JsonDocument doc;
+        
+        JsonObject descale = doc["descale"].to<JsonObject>();
+        descale["shots"] = maintenance.shotsSinceDescale;
+        descale["interval"] = maintenance.descaleInterval;
+        descale["due"] = maintenance.descaleDue;
+        descale["progress"] = maintenance.descaleInterval > 0 
+            ? (maintenance.shotsSinceDescale * 100) / maintenance.descaleInterval 
+            : 0;
+        
+        JsonObject backflush = doc["backflush"].to<JsonObject>();
+        backflush["shots"] = maintenance.shotsSinceBackflush;
+        backflush["days"] = maintenance.daysSinceBackflush;
+        backflush["shotsInterval"] = maintenance.backflushInterval;
+        backflush["daysInterval"] = maintenance.backflushDaysInterval;
+        backflush["due"] = maintenance.backflushDue;
+        uint32_t shotsProgress = maintenance.backflushInterval > 0 
+            ? (maintenance.shotsSinceBackflush * 100) / maintenance.backflushInterval 
+            : 0;
+        uint32_t daysProgress = maintenance.backflushDaysInterval > 0 
+            ? (maintenance.daysSinceBackflush * 100) / maintenance.backflushDaysInterval 
+            : 0;
+        backflush["progress"] = max(shotsProgress, daysProgress);
+        
+        JsonObject basket = doc["basket"].to<JsonObject>();
+        basket["shots"] = maintenance.shotsSinceBasketClean;
+        basket["interval"] = maintenance.basketCleanInterval;
+        basket["due"] = maintenance.basketCleanDue;
+        basket["progress"] = maintenance.basketCleanInterval > 0 
+            ? (maintenance.shotsSinceBasketClean * 100) / maintenance.basketCleanInterval 
+            : 0;
+        
+        JsonObject refill = doc["refill"].to<JsonObject>();
+        refill["shots"] = maintenance.shotsSinceRefill;
+        refill["interval"] = maintenance.refillReminderInterval;
+        refill["due"] = maintenance.refillDue;
+        refill["progress"] = maintenance.refillReminderInterval > 0 
+            ? (maintenance.shotsSinceRefill * 100) / maintenance.refillReminderInterval 
+            : 0;
+        
+        String response;
+        serializeJson(doc, response);
+        request->send(200, "application/json", response);
+    });
+
+    // POST /maintenance/reset - Reset counters
+    server.on("/maintenance/reset", HTTP_POST, [](AsyncWebServerRequest* request) {
+        if (request->hasParam("type", true)) {
+            String type = request->getParam("type", true)->value();
+            
+            if (type == "descale") resetDescaleCounter();
+            else if (type == "backflush") resetBackflushCounter();
+            else if (type == "basket") resetBasketCleanCounter();
+            else if (type == "refill") resetRefillCounter();
+            else {
+                request->send(400, "text/plain", "Invalid type");
+                return;
+            }
+            
+            request->send(200, "text/plain", "Counter reset");
+        } else {
+            request->send(400, "text/plain", "Missing type");
+        }
     });
 
     server.onNotFound([](AsyncWebServerRequest* request) { request->send(404, "text/plain", "Not found"); });

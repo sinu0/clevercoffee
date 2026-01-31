@@ -14,6 +14,7 @@
 
 #include "brewStates.h"
 #include "scaleHandler.h"
+#include "maintenance.h"
 
 // Brew control states
 inline BrewSwitchState currBrewSwitchState = kBrewSwitchIdle;
@@ -357,6 +358,9 @@ inline bool brew() {
                 if (scale && config.get<bool>("hardware.sensors.scale.enabled") && config.get<int>("hardware.sensors.scale.type") == 2 && config.get<bool>("display.blescale_brew_timer")) {
                     static_cast<BluetoothScale*>(scale)->stopTimer();
                 }
+
+                // Increment maintenance counters
+                incrementShotCounters();
 
                 break;
             }

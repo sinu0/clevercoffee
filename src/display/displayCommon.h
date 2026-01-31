@@ -8,6 +8,7 @@
 
 #include "bitmaps.h"
 #include "languages.h"
+#include "maintenance.h"
 
 inline const u8g2_cb_t* getU8G2Rotation(const int rotationValue) {
     switch (rotationValue) {
@@ -840,4 +841,49 @@ inline bool displayMachineState() {
     }
 
     return false;
+}
+
+/**
+ * @brief Display maintenance warning on OLED
+ */
+inline void displayMaintenanceWarning() {
+    static uint8_t currentDueIndex = 0;
+    static unsigned long lastRotation = 0;
+    
+    // Don't show during brew
+    if (checkBrewActive()) {
+        return;
+    }
+    
+    // Build list of due maintenance items
+    const char* dueItems[4] = {nullptr, nullptr, nullptr, nullptr};
+    int dueCount = 0;
+    
+    if (maintenance.descaleDue) {
+        dueItems[dueCount++] = "! DESCALE DUE";
+    }
+    if (maintenance.backflushDue) {
+        dueItems[dueCount++] = "! BACKFLUSH DUE";
+    }
+    if (maintenance.basketCleanDue) {
+        dueItems[dueCount++] = "! CLEAN BASKET";
+    }
+    if (maintenance.refillDue) {
+        dueItems[dueCount++] = "! REFILL TANK";
+    }
+    
+    // Only show if there's something due
+    if (dueCount == 0) {
+        return;
+    }
+    
+    // Rotate notifications every 5 seconds
+    if (millis() - lastRotation > 5000) {
+        currentDueIndex = (currentDueIndex + 1) % dueCount;
+        lastRotation = millis();
+    }
+    
+    // Display the current due item
+    u8g2->setFont(u8g2_font_profont11_tr);
+    u8g2->drawStr(0, 60, dueItems[currentDueIndex]);
 }
