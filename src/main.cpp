@@ -21,6 +21,7 @@
 // Includes
 #include "Config.h"
 #include "ParameterRegistry.h"
+#include "brewProfiles.h"
 
 // Utilities
 #include "utils/Timer.h"
@@ -926,6 +927,9 @@ void setup() {
     else {
         ParameterRegistry::getInstance().syncGlobalVariables();
     }
+
+    // Initialize brew profiles
+    initProfiles();
 
     Wire.begin();
 

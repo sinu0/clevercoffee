@@ -18,6 +18,7 @@
 #include <ESPAsyncWebServer.h>
 
 #include "LittleFS.h"
+#include "brewProfiles.h"
 
 inline AsyncWebServer server(80);
 inline AsyncEventSource events("/events");
@@ -626,6 +627,94 @@ inline void serverSetup() {
 
     // serve static files
     LittleFS.begin();
+    // Profile management endpoints
+    server.on("/profiles", HTTP_GET, [](AsyncWebServerRequest* request) {
+        if (!authenticate(request)) {
+            return request->requestAuthentication();
+        }
+
+        JsonDocument doc;
+        JsonArray profilesArray = doc["profiles"].to<JsonArray>();
+        
+        for (uint8_t i = 0; i < MAX_PROFILES; i++) {
+            JsonObject profile = profilesArray.add<JsonObject>();
+            profile["index"] = i;
+            profile["name"] = getProfileName(i);
+            profile["active"] = isProfileActive(i);
+            profile["isCurrentActive"] = (i == activeProfileIndex);
+            
+            if (isProfileActive(i)) {
+                profile["brewSetpoint"] = profiles[i].brewSetpoint;
+                profile["brewMode"] = profiles[i].brewMode;
+                profile["preInfusionEnabled"] = profiles[i].preInfusionEnabled;
+            }
+        }
+        
+        doc["activeIndex"] = activeProfileIndex;
+        
+        String response;
+        serializeJson(doc, response);
+        request->send(200, "application/json", response);
+    });
+
+    server.on("/profiles/load", HTTP_POST, [](AsyncWebServerRequest* request) {
+        if (!authenticate(request)) {
+            return request->requestAuthentication();
+        }
+
+        if (request->hasParam("index", true)) {
+            uint8_t index = request->getParam("index", true)->value().toInt();
+            loadProfile(index);
+            request->send(200, "text/plain", "Profile loaded");
+        } else {
+            request->send(400, "text/plain", "Missing index");
+        }
+    });
+
+    server.on("/profiles/save", HTTP_POST, [](AsyncWebServerRequest* request) {
+        if (!authenticate(request)) {
+            return request->requestAuthentication();
+        }
+
+        if (request->hasParam("index", true) && request->hasParam("name", true)) {
+            uint8_t index = request->getParam("index", true)->value().toInt();
+            String name = request->getParam("name", true)->value();
+            saveCurrentAsProfile(index, name.c_str());
+            request->send(200, "text/plain", "Profile saved");
+        } else {
+            request->send(400, "text/plain", "Missing parameters");
+        }
+    });
+
+    server.on("/profiles/delete", HTTP_POST, [](AsyncWebServerRequest* request) {
+        if (!authenticate(request)) {
+            return request->requestAuthentication();
+        }
+
+        if (request->hasParam("index", true)) {
+            uint8_t index = request->getParam("index", true)->value().toInt();
+            deleteProfile(index);
+            request->send(200, "text/plain", "Profile deleted");
+        } else {
+            request->send(400, "text/plain", "Missing index");
+        }
+    });
+
+    server.on("/profiles/rename", HTTP_POST, [](AsyncWebServerRequest* request) {
+        if (!authenticate(request)) {
+            return request->requestAuthentication();
+        }
+
+        if (request->hasParam("index", true) && request->hasParam("name", true)) {
+            uint8_t index = request->getParam("index", true)->value().toInt();
+            String name = request->getParam("name", true)->value();
+            renameProfile(index, name.c_str());
+            request->send(200, "text/plain", "Profile renamed");
+        } else {
+            request->send(400, "text/plain", "Missing parameters");
+        }
+    });
+
     server.serveStatic("/css", LittleFS, "/css/", "max-age=604800"); // cache for one week
     server.serveStatic("/js", LittleFS, "/js/", "max-age=604800");
     server.serveStatic("/img", LittleFS, "/img/", "max-age=604800"); // cache for one week
