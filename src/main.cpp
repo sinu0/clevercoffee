@@ -1279,7 +1279,7 @@ void loopPid() {
     }
 
     // Reset stability when entering brew or steam modes
-    static MachineState lastMachineState = kInit;
+    static MachineState lastMachineState = machineState; // Initialize to current state
     if (machineState != lastMachineState) {
         if (machineState == kBrew || machineState == kSteam || machineState == kManualFlush || machineState == kHotWater) {
             resetStability();
@@ -1521,11 +1521,12 @@ void loopPid() {
 }
 
 void loopLED() {
+    static unsigned long lastBlink = 0;
+    static bool ledState = false;
+    
     if (config.get<bool>("hardware.leds.status.enabled") && statusLed != nullptr) {
         // LED blink when temperature is ready
         if (tempReadyEnabled && tempReadyLedBlink && tempStability.isStable && machineState == kPidNormal) {
-            static unsigned long lastBlink = 0;
-            static bool ledState = false;
             if (millis() - lastBlink > 1000) {
                 ledState = !ledState;
                 if (ledState) {
@@ -1537,11 +1538,17 @@ void loopLED() {
             }
         }
         // Normal status LED behavior
-        else if ((machineState == kPidNormal && (fabs(temperature - setpoint) < 0.3)) || (temperature > 115 && fabs(temperature - setpoint) < 5)) {
-            statusLed->turnOn();
-        }
         else {
-            statusLed->turnOff();
+            // Reset blink state when not in ready mode
+            ledState = false;
+            lastBlink = 0;
+            
+            if ((machineState == kPidNormal && (fabs(temperature - setpoint) < 0.3)) || (temperature > 115 && fabs(temperature - setpoint) < 5)) {
+                statusLed->turnOn();
+            }
+            else {
+                statusLed->turnOff();
+            }
         }
     }
 

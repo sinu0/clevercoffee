@@ -37,21 +37,24 @@ void addTempReading(double temperature, double setpoint) {
     checkTempStability(setpoint);
 }
 
-bool checkTempStability(double setpoint) {
-    // Need at least 10 readings
-    if (tempStability.readingCount < TEMP_READINGS_BUFFER) {
-        return false;
-    }
-    
-    // Calculate standard deviation
-    double stdDev = calculateStdDev();
-    
-    // Calculate mean temperature
+// Helper function to calculate mean temperature
+static double calculateMean() {
     double mean = 0;
     for (int i = 0; i < TEMP_READINGS_BUFFER; i++) {
         mean += tempStability.readings[i];
     }
-    mean /= TEMP_READINGS_BUFFER;
+    return mean / TEMP_READINGS_BUFFER;
+}
+
+bool checkTempStability(double setpoint) {
+    // Need at least TEMP_READINGS_BUFFER readings
+    if (tempStability.readingCount < TEMP_READINGS_BUFFER) {
+        return false;
+    }
+    
+    // Calculate standard deviation and mean
+    double stdDev = calculateStdDev();
+    double mean = calculateMean();
     
     // Check if temperature is stable
     bool isCloseToSetpoint = (fabs(mean - setpoint) < tempStability.stabilityThreshold);
@@ -87,11 +90,7 @@ bool checkTempStability(double setpoint) {
 }
 
 double calculateStdDev() {
-    double mean = 0;
-    for (int i = 0; i < TEMP_READINGS_BUFFER; i++) {
-        mean += tempStability.readings[i];
-    }
-    mean /= TEMP_READINGS_BUFFER;
+    double mean = calculateMean();
     
     double variance = 0;
     for (int i = 0; i < TEMP_READINGS_BUFFER; i++) {
