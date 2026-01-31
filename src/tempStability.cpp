@@ -39,11 +39,17 @@ void addTempReading(double temperature, double setpoint) {
 
 // Helper function to calculate mean temperature
 static double calculateMean() {
+    // Only calculate mean from valid readings
+    if (tempStability.readingCount == 0) {
+        return 0.0;
+    }
+    
     double mean = 0;
-    for (int i = 0; i < TEMP_READINGS_BUFFER; i++) {
+    int count = tempStability.readingCount < TEMP_READINGS_BUFFER ? tempStability.readingCount : TEMP_READINGS_BUFFER;
+    for (int i = 0; i < count; i++) {
         mean += tempStability.readings[i];
     }
-    return mean / TEMP_READINGS_BUFFER;
+    return mean / count;
 }
 
 bool checkTempStability(double setpoint) {
@@ -90,14 +96,20 @@ bool checkTempStability(double setpoint) {
 }
 
 double calculateStdDev() {
+    // Need valid readings to calculate standard deviation
+    if (tempStability.readingCount == 0) {
+        return 0.0;
+    }
+    
     double mean = calculateMean();
     
+    int count = tempStability.readingCount < TEMP_READINGS_BUFFER ? tempStability.readingCount : TEMP_READINGS_BUFFER;
     double variance = 0;
-    for (int i = 0; i < TEMP_READINGS_BUFFER; i++) {
+    for (int i = 0; i < count; i++) {
         variance += pow(tempStability.readings[i] - mean, 2);
     }
     
-    return sqrt(variance / TEMP_READINGS_BUFFER);
+    return sqrt(variance / count);
 }
 
 void resetStability() {

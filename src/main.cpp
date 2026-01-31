@@ -1279,7 +1279,14 @@ void loopPid() {
     }
 
     // Reset stability when entering brew or steam modes
-    static MachineState lastMachineState = machineState; // Initialize to current state
+    static bool firstLoop = true;
+    static MachineState lastMachineState = kPidNormal;
+    
+    if (firstLoop) {
+        lastMachineState = machineState;
+        firstLoop = false;
+    }
+    
     if (machineState != lastMachineState) {
         if (machineState == kBrew || machineState == kSteam || machineState == kManualFlush || machineState == kHotWater) {
             resetStability();
