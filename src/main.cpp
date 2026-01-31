@@ -1279,15 +1279,18 @@ void loopPid() {
     }
 
     // Reset stability when entering brew or steam modes
-    static MachineState lastMachineState = static_cast<MachineState>(-1);
+    static bool isFirstIteration = true;
+    static MachineState lastMachineState = kPidNormal;
     
-    // Skip check on first iteration (lastMachineState is sentinel value)
-    if (lastMachineState != static_cast<MachineState>(-1) && machineState != lastMachineState) {
+    if (!isFirstIteration && machineState != lastMachineState) {
         if (machineState == kBrew || machineState == kSteam || machineState == kManualFlush || machineState == kHotWater) {
             resetStability();
         }
     }
     
+    if (isFirstIteration) {
+        isFirstIteration = false;
+    }
     lastMachineState = machineState;
 
     static bool wifiWasConnected = false;
@@ -1530,8 +1533,8 @@ void loopLED() {
     if (config.get<bool>("hardware.leds.status.enabled") && statusLed != nullptr) {
         // LED blink when temperature is ready
         if (tempReadyLedBlink && isTempReadyIndicatorActive()) {
-            // Handle millis() rollover correctly
-            if ((unsigned long)(millis() - lastBlink) > TEMP_READY_BLINK_INTERVAL_MS) {
+            // millis() arithmetic naturally handles rollover
+            if (millis() - lastBlink > TEMP_READY_BLINK_INTERVAL_MS) {
                 ledState = !ledState;
                 if (ledState) {
                     statusLed->turnOn();
