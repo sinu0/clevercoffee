@@ -13,6 +13,7 @@
 #pragma once
 
 #include "brewStates.h"
+#include "brewTimer.h"
 #include "scaleHandler.h"
 
 // Brew control states
@@ -214,6 +215,8 @@ inline bool brew() {
 
     const unsigned long currentMillisTemp = millis();
     checkBrewSwitch();
+    
+    static BrewState lastBrewState = kBrewIdle;
 
     // abort function for state machine from every state
     if (currBrewSwitchState == kBrewSwitchIdle && currBrewState > kBrewIdle && currBrewState < kBrewFinished) {
@@ -225,6 +228,7 @@ inline bool brew() {
     // calculated brew time while brew is running
     if (currBrewState > kBrewIdle && currBrewState < kBrewFinished) {
         currBrewTime = currentMillisTemp - startingTime;
+        updateBrewTimer();
     }
 
     const int brewMode = config.get<int>("brew.mode");
@@ -259,6 +263,9 @@ inline bool brew() {
                 currBrewWeight = 0; // reset currBrewWeight for new brew
 
                 LOG(INFO, "Brew started");
+                
+                // Initialize brew timer
+                startBrewTimer();
 
                 if (!preinfusionEnabled) {
                     LOG(INFO, "Brew running");
@@ -297,6 +304,10 @@ inline bool brew() {
             break;
 
         case kPreinfusion:
+            if (currBrewState != lastBrewState) {
+                setBrewPhase(PHASE_PRE_INF_SINGLE, 0, preinfusion);
+            }
+            
             valveRelay->on();
             pumpRelay->on();
             debugPumpState("Preinfusion", "on");
@@ -309,6 +320,10 @@ inline bool brew() {
             break;
 
         case kPreinfusionPause:
+            if (currBrewState != lastBrewState) {
+                setBrewPhase(PHASE_PRE_INF_SOAK, 0, preinfusionPause);
+            }
+            
             valveRelay->on();
             pumpRelay->off();
             debugPumpState("Pause", "off");
@@ -322,6 +337,10 @@ inline bool brew() {
 
         case kBrewRunning:
             {
+                if (currBrewState != lastBrewState) {
+                    setBrewPhase(PHASE_BREWING, 0, targetBrewTime);
+                }
+                
                 valveRelay->on();
                 pumpRelay->on();
                 debugPumpState("BrewRunning", "on");
@@ -344,6 +363,8 @@ inline bool brew() {
 
         case kBrewFinished:
             {
+                setBrewPhase(PHASE_FINISHED, 0, 0);
+                
                 valveRelay->off();
                 pumpRelay->off();
                 debugPumpState("BrewFinished", "off");
@@ -367,6 +388,8 @@ inline bool brew() {
 
             break;
     }
+    
+    lastBrewState = currBrewState;
 
     return checkBrewActive();
 }
