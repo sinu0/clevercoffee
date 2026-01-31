@@ -15,6 +15,7 @@
 struct TempStability {
     double readings[TEMP_READINGS_BUFFER];  // Last 10 temperature readings
     uint8_t readingIndex;                   // Current position in circular buffer
+    uint8_t readingCount;                   // Number of readings collected
     unsigned long lastReadingTime;          // millis() of last reading
     unsigned long stableStartTime;          // millis() when stability started
     bool isStable;                          // Current stability status

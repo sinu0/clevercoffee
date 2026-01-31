@@ -18,6 +18,7 @@
 #include <ESPAsyncWebServer.h>
 
 #include "LittleFS.h"
+#include "tempStability.h"
 
 inline AsyncWebServer server(80);
 inline AsyncEventSource events("/events");
@@ -424,8 +425,6 @@ inline void serverSetup() {
     });
 
     server.on("/temperatures", HTTP_GET, [](AsyncWebServerRequest* request) {
-        extern TempStability tempStability;
-        
         AsyncResponseStream* response = request->beginResponseStream("application/json");
         response->print('{');
         response->print("\"currentTemp\":");

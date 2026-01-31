@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "tempStability.h"
+
 /**
  * @brief Send data to display
  */
@@ -59,8 +61,6 @@ inline void printScreen() {
     u8g2->print("C");
 
     // Temperature ready indicator
-    extern TempStability tempStability;
-    extern bool tempReadyEnabled;
     if (tempReadyEnabled && tempStability.isStable && machineState == kPidNormal && !steamON) {
         u8g2->setFont(u8g2_font_profont10_tf);
         u8g2->setCursor(100, 36);
