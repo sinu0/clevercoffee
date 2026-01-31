@@ -91,13 +91,24 @@ inline void printScreen() {
         }
         else {
             if (shouldDisplayBrewTimer()) {
-                u8g2->setCursor(34, 44);
-                u8g2->print(langstring_brew);
-                u8g2->print(currBrewTime / 1000, 0);
+                // Show phase name during active brewing  
+                if (checkBrewActive()) {
+                    u8g2->setCursor(34, 44);
+                    u8g2->print(getPhaseDisplayName());
+                    u8g2->print(" ");
+                    u8g2->print(brewTimerInfo.totalElapsedTime, 1);
+                    u8g2->print("s");
+                }
+                // Show standard timer after brew finishes
+                else {
+                    u8g2->setCursor(34, 44);
+                    u8g2->print(langstring_brew);
+                    u8g2->print(currBrewTime / 1000, 0);
 
-                if (config.get<bool>("brew.by_time.enabled") && config.get<int>("brew.mode") == 1) {
-                    u8g2->print("/");
-                    u8g2->print(totalTargetBrewTime / 1000, 0);
+                    if (config.get<bool>("brew.by_time.enabled") && config.get<int>("brew.mode") == 1) {
+                        u8g2->print("/");
+                        u8g2->print(totalTargetBrewTime / 1000, 0);
+                    }
                 }
             }
         }
