@@ -351,6 +351,16 @@ inline bool brew() {
                 brewSwitchWasOff = false;
                 LOG(INFO, "Brew finished");
                 LOGF(INFO, "Shot time: %4.1f s", currBrewTime / 1000);
+                
+                // Record shot statistics
+                #include "brewStats.h"
+                recordShot(
+                    currBrewTime / 1000.0,  // Convert ms to seconds
+                    currBrewWeight,
+                    temperature,
+                    config.get<int>("brew.mode")
+                );
+                
                 LOG(INFO, "Brew idle");
                 currBrewState = kBrewIdle;
 

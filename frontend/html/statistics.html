@@ -1,0 +1,199 @@
+%HEADER%
+
+    <script type="module">
+        (window.appCreated ? Promise.resolve() : new Promise(resolve => window.addEventListener('appCreated', resolve)))
+            .then(() => vueApp.mount('#content'));
+    </script>
+
+    <div class="content-wrapper">
+        <div id="content" class="container my-5">
+            <div class="card card-accent-dark mb-4 shadow-sm rounded">
+                <div class="card-body bg-light pb-1 rounded">
+                    <h5 class="card-title">
+                        <i class="fa-solid fa-chart-bar"></i> Brew Statistics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Total Shots Card -->
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h6 class="card-title text-muted">Total Shots</h6>
+                                    <h2 class="text-primary">{{ stats.totalShots }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Daily Shots Card -->
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h6 class="card-title text-muted">Today</h6>
+                                    <h2 class="text-success">{{ stats.dailyShots }}</h2>
+                                    <button @click="reset('daily')" class="btn btn-sm btn-outline-secondary mt-2">Reset</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Weekly Shots Card -->
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h6 class="card-title text-muted">This Week</h6>
+                                    <h2 class="text-info">{{ stats.weeklyShots }}</h2>
+                                    <button @click="reset('weekly')" class="btn btn-sm btn-outline-secondary mt-2">Reset</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Monthly Shots Card -->
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h6 class="card-title text-muted">This Month</h6>
+                                    <h2 class="text-warning">{{ stats.monthlyShots }}</h2>
+                                    <button @click="reset('monthly')" class="btn btn-sm btn-outline-secondary mt-2">Reset</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Averages Row -->
+                    <div class="row mt-3">
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title text-muted">Average Brew Time</h6>
+                                    <h3>{{ stats.avgBrewTime.toFixed(1) }}s</h3>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title text-muted">Average Shot Weight</h6>
+                                    <h3>{{ stats.avgWeight.toFixed(1) }}g</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Last 10 Shots Table -->
+            <div class="card card-accent-dark mb-4 shadow-sm rounded">
+                <div class="card-body bg-light pb-1 rounded">
+                    <h5 class="card-title">
+                        <i class="fa-solid fa-list"></i> Last 10 Shots
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Time</th>
+                                    <th>Brew Time</th>
+                                    <th>Weight</th>
+                                    <th>Temp</th>
+                                    <th>Mode</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(shot, index) in stats.lastShots" :key="index">
+                                    <td>{{ index + 1 }}</td>
+                                    <td>{{ formatTimestamp(shot.timestamp) }}</td>
+                                    <td>{{ shot.brewTime.toFixed(1) }}s</td>
+                                    <td>{{ shot.weight.toFixed(1) }}g</td>
+                                    <td>{{ shot.temperature.toFixed(1) }}°C</td>
+                                    <td>{{ getModeText(shot.preInfMode) }}</td>
+                                </tr>
+                                <tr v-if="stats.lastShots.length === 0">
+                                    <td colspan="6" class="text-center text-muted">No shots recorded yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Danger Zone -->
+            <div class="card card-accent-dark mb-4 shadow-sm rounded border-danger">
+                <div class="card-body bg-danger text-white pb-1 rounded-top">
+                    <h5 class="card-title">
+                        <i class="fa-solid fa-exclamation-triangle"></i> Danger Zone
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <button @click="reset('all')" class="btn btn-danger">Reset All Statistics</button>
+                    <p class="text-muted mt-2 mb-0">This will delete all recorded data permanently!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        const { createApp } = Vue;
+        
+        window.vueApp = createApp({
+            data() {
+                return {
+                    stats: {
+                        totalShots: 0,
+                        dailyShots: 0,
+                        weeklyShots: 0,
+                        monthlyShots: 0,
+                        avgBrewTime: 0,
+                        avgWeight: 0,
+                        lastShots: []
+                    }
+                };
+            },
+            mounted() {
+                this.loadStats();
+                
+                // Auto-refresh every 30 seconds
+                setInterval(() => this.loadStats(), 30000);
+            },
+            methods: {
+                async loadStats() {
+                    try {
+                        const response = await fetch('/statistics');
+                        this.stats = await response.json();
+                    } catch (error) {
+                        console.error('Failed to load statistics:', error);
+                    }
+                },
+                async reset(type) {
+                    if (!confirm(`Are you sure you want to reset ${type} statistics?`)) return;
+                    
+                    try {
+                        await fetch('/statistics/reset', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: `type=${type}`
+                        });
+                        await this.loadStats();
+                    } catch (error) {
+                        console.error('Failed to reset statistics:', error);
+                        alert('Failed to reset statistics. Please try again.');
+                    }
+                },
+                formatTimestamp(ts) {
+                    if (!ts) return '-';
+                    const date = new Date(ts * 1000);
+                    return date.toLocaleString();
+                },
+                getModeText(mode) {
+                    const modes = ['Off', 'Preinfusion', 'Pulse'];
+                    return modes[mode] || 'Unknown';
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

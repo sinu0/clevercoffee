@@ -611,6 +611,65 @@ inline void serverSetup() {
         ESP.restart();
     });
 
+    // Statistics endpoints
+    server.on("/statistics", HTTP_GET, [](AsyncWebServerRequest* request) {
+        if (!authenticate(request)) {
+            return request->requestAuthentication();
+        }
+
+        JsonDocument doc;
+
+        doc["totalShots"] = brewStats.totalShots;
+        doc["dailyShots"] = brewStats.dailyShots;
+        doc["weeklyShots"] = brewStats.weeklyShots;
+        doc["monthlyShots"] = brewStats.monthlyShots;
+        doc["avgBrewTime"] = brewStats.avgBrewTime;
+        doc["avgWeight"] = brewStats.avgWeight;
+
+        JsonArray shots = doc.createNestedArray("lastShots");
+
+        for (int i = 0; i < 10; i++) {
+            int idx = (brewStats.lastShotIndex + i) % 10;
+
+            if (brewStats.lastShots[idx].timestamp > 0) {
+                JsonObject shot = shots.createNestedObject();
+                shot["timestamp"] = brewStats.lastShots[idx].timestamp;
+                shot["brewTime"] = brewStats.lastShots[idx].brewTime;
+                shot["weight"] = brewStats.lastShots[idx].weight;
+                shot["temperature"] = brewStats.lastShots[idx].temperature;
+                shot["preInfMode"] = brewStats.lastShots[idx].preInfusionMode;
+            }
+        }
+
+        String response;
+        serializeJson(doc, response);
+        request->send(200, "application/json", response);
+    });
+
+    server.on("/statistics/reset", HTTP_POST, [](AsyncWebServerRequest* request) {
+        if (!authenticate(request)) {
+            return request->requestAuthentication();
+        }
+
+        if (request->hasParam("type", true)) {
+            String type = request->getParam("type", true)->value();
+
+            if (type == "daily")
+                resetDailyStats();
+            else if (type == "weekly")
+                resetWeeklyStats();
+            else if (type == "monthly")
+                resetMonthlyStats();
+            else if (type == "all")
+                resetAllStats();
+
+            request->send(200, "text/plain", "Stats reset");
+        }
+        else {
+            request->send(400, "text/plain", "Missing type parameter");
+        }
+    });
+
     server.onNotFound([](AsyncWebServerRequest* request) { request->send(404, "text/plain", "Not found"); });
 
     // set up event handler for temperature messages
