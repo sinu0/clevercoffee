@@ -45,11 +45,11 @@ static double calculateMean() {
     }
     
     double mean = 0;
-    int count = tempStability.readingCount < TEMP_READINGS_BUFFER ? tempStability.readingCount : TEMP_READINGS_BUFFER;
-    for (int i = 0; i < count; i++) {
+    // readingCount is already capped at TEMP_READINGS_BUFFER
+    for (int i = 0; i < tempStability.readingCount; i++) {
         mean += tempStability.readings[i];
     }
-    return mean / count;
+    return mean / tempStability.readingCount;
 }
 
 bool checkTempStability(double setpoint) {
@@ -111,13 +111,13 @@ double calculateStdDev() {
     
     double mean = calculateMean();
     
-    int count = tempStability.readingCount < TEMP_READINGS_BUFFER ? tempStability.readingCount : TEMP_READINGS_BUFFER;
+    // readingCount is already capped at TEMP_READINGS_BUFFER
     double variance = 0;
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < tempStability.readingCount; i++) {
         variance += pow(tempStability.readings[i] - mean, 2);
     }
     
-    return sqrt(variance / count);
+    return sqrt(variance / tempStability.readingCount);
 }
 
 void resetStability() {

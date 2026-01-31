@@ -1279,19 +1279,15 @@ void loopPid() {
     }
 
     // Reset stability when entering brew or steam modes
-    // Use a dedicated flag to track first loop iteration
-    static bool isFirstIteration = true;
-    static MachineState lastMachineState = kPidNormal;
+    static MachineState lastMachineState = static_cast<MachineState>(-1);
     
-    if (!isFirstIteration && machineState != lastMachineState) {
+    // Skip check on first iteration (lastMachineState is sentinel value)
+    if (lastMachineState != static_cast<MachineState>(-1) && machineState != lastMachineState) {
         if (machineState == kBrew || machineState == kSteam || machineState == kManualFlush || machineState == kHotWater) {
             resetStability();
         }
     }
     
-    if (isFirstIteration) {
-        isFirstIteration = false;
-    }
     lastMachineState = machineState;
 
     static bool wifiWasConnected = false;
@@ -1548,8 +1544,9 @@ void loopLED() {
         // Normal status LED behavior
         else {
             // Reset blink state when not in ready mode
+            // Set to current millis() to ensure full interval on re-entry
             ledState = false;
-            lastBlink = 0;
+            lastBlink = millis();
             
             if ((machineState == kPidNormal && (fabs(temperature - setpoint) < 0.3)) || (temperature > 115 && fabs(temperature - setpoint) < 5)) {
                 statusLed->turnOn();
