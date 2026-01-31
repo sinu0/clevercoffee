@@ -94,6 +94,7 @@ Improved MQTT discovery message generation for better stability and reliability.
  * Separate PID for steam mode with own parameters and target temperature (can be enabled in the web interface/MQTT or using the steam switch)
  * Automatically brew by set time including pre-infusion timing
  * Automatically brew by weight using integrated weight cells or Bluetooth Low Energy scales
+ * Brew statistics tracking: total shots, daily/weekly/monthly counters, average brew time and weight, last 10 shots history
  * Automatic backflush program
  * Programmable standby timer
  * Supports toggle or momentary switches for brew, steam, hot water delivery and power/standby

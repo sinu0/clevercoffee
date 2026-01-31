@@ -564,3 +564,90 @@ For each switch type (brew, power, steam):
 - Invalid values will be rejected and the previous valid value will be retained
 
 Always backup your working configuration before making changes!
+
+---
+
+## Statistics API
+
+### GET /statistics
+
+Returns current brewing statistics and last 10 shots.
+
+**Response Format:**
+```json
+{
+  "totalShots": 142,
+  "dailyShots": 5,
+  "weeklyShots": 28,
+  "monthlyShots": 142,
+  "avgBrewTime": 28.5,
+  "avgWeight": 36.2,
+  "currentUptime": 3456789,
+  "lastShots": [
+    {
+      "timestamp": 3456700,
+      "brewTime": 29.3,
+      "weight": 38.5,
+      "temperature": 94.2,
+      "preInfMode": 1
+    }
+  ]
+}
+```
+
+**Field Descriptions:**
+- `totalShots`: Total shots pulled since installation
+- `dailyShots`: Shots pulled in the last 24 hours (uptime-based)
+- `weeklyShots`: Shots pulled in the last 7 days (uptime-based)
+- `monthlyShots`: Shots pulled in the last 30 days (uptime-based)
+- `avgBrewTime`: Average brew time across all shots (seconds)
+- `avgWeight`: Average shot weight from last 10 shots (grams)
+- `currentUptime`: Current device uptime in seconds (for timestamp calculation)
+- `lastShots`: Array of up to 10 most recent shots (newest first)
+  - `timestamp`: Shot timestamp in seconds since boot
+  - `brewTime`: Brew duration in seconds
+  - `weight`: Shot weight in grams
+  - `temperature`: Brew temperature in °C
+  - `preInfMode`: Brew mode (0=Off, 1=Preinfusion, 2=Pulse)
+
+**Note:** Timestamps and reset periods are based on device uptime (millis()/1000), not calendar time. They reset to zero when the device restarts.
+
+### POST /statistics/reset
+
+Reset statistics counters.
+
+**Parameters:**
+- `type` (required): Type of reset to perform
+  - `daily`: Reset daily shot counter
+  - `weekly`: Reset weekly shot counter
+  - `monthly`: Reset monthly shot counter
+  - `all`: Reset all statistics (total shots, all counters, last shots)
+
+**Example:**
+```
+POST /statistics/reset
+Content-Type: application/x-www-form-urlencoded
+
+type=daily
+```
+
+**Response:**
+- Success: `200 OK` with message "Stats reset"
+- Error: `400 Bad Request` if type parameter is missing
+
+**⚠️ Warning:** Resetting with `type=all` will permanently delete all recorded statistics data!
+
+---
+
+## MQTT Statistics Sensors
+
+When MQTT is enabled, the following statistics sensors are published to Home Assistant:
+
+- `stats_total_shots`: Total shots since installation
+- `stats_daily_shots`: Shots in last 24 hours
+- `stats_weekly_shots`: Shots in last 7 days
+- `stats_monthly_shots`: Shots in last 30 days
+- `stats_avg_brew_time`: Average brew time (seconds)
+- `stats_avg_weight`: Average shot weight (grams)
+
+These sensors update at the standard MQTT interval (5 seconds normal, 500ms during brew, 10 seconds in standby).

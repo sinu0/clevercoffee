@@ -1121,6 +1121,14 @@ void setup() {
                 mqttSensors["pressure"] = [] { return inputPressureFilter; };
             }
 
+            // Brew statistics sensors
+            mqttSensors["stats_total_shots"] = [] { return brewStats.totalShots; };
+            mqttSensors["stats_daily_shots"] = [] { return brewStats.dailyShots; };
+            mqttSensors["stats_weekly_shots"] = [] { return brewStats.weeklyShots; };
+            mqttSensors["stats_monthly_shots"] = [] { return brewStats.monthlyShots; };
+            mqttSensors["stats_avg_brew_time"] = [] { return brewStats.avgBrewTime; };
+            mqttSensors["stats_avg_weight"] = [] { return brewStats.avgWeight; };
+
             snprintf(topic_will, sizeof(topic_will), "%s%s/%s", mqtt_topic_prefix.c_str(), hostname.c_str(), "status");
             snprintf(topic_set, sizeof(topic_set), "%s%s/+/%s", mqtt_topic_prefix.c_str(), hostname.c_str(), "set");
             mqtt.setServer(mqtt_server_ip.c_str(), mqtt_server_port);
@@ -1145,6 +1153,9 @@ void setup() {
     Logger::begin();
     int level = ParameterRegistry::getInstance().getParameterById("system.log_level")->getValueAs<int>();
     Logger::setLevel(static_cast<Logger::Level>(level));
+
+    // Initialize brew statistics
+    initBrewStats();
 
     // Initialize PID controller
     bPID.SetSampleTime(windowSize);
@@ -1225,6 +1236,29 @@ void loop() {
 
     // Update water tank sensor
     loopWaterTank();
+
+    // Check for daily/weekly/monthly stats resets (once per hour)
+    static unsigned long lastStatsCheck = 0;
+    if (millis() - lastStatsCheck > 3600000) {  // 1 hour
+        uint32_t now = millis() / 1000;
+
+        // Check daily reset (midnight)
+        if (brewStats.lastResetTimestamp > 0 && now - brewStats.lastResetTimestamp > 86400) {
+            resetDailyStats();
+        }
+
+        // Check weekly reset (Monday)
+        if (brewStats.weekStartTimestamp > 0 && now - brewStats.weekStartTimestamp > 604800) {
+            resetWeeklyStats();
+        }
+
+        // Check monthly reset (1st of month)
+        if (brewStats.monthStartTimestamp > 0 && now - brewStats.monthStartTimestamp > 2592000) {
+            resetMonthlyStats();
+        }
+
+        lastStatsCheck = millis();
+    }
 
     // Update PID settings & machine state
     loopPid();
