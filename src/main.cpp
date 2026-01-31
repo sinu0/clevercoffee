@@ -1240,6 +1240,7 @@ void loop() {
     loopWaterTank();
 
     // Check daily maintenance (once per day)
+    // Note: millis() overflow is handled correctly by unsigned arithmetic
     static unsigned long lastMaintenanceCheck = 0;
     if (millis() - lastMaintenanceCheck > 86400000) {  // 24 hours
         checkDailyMaintenance();

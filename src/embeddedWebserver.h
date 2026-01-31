@@ -620,7 +620,9 @@ inline void serverSetup() {
         descale["shots"] = maintenance.shotsSinceDescale;
         descale["interval"] = maintenance.descaleInterval;
         descale["due"] = maintenance.descaleDue;
-        descale["progress"] = (maintenance.shotsSinceDescale * 100) / maintenance.descaleInterval;
+        descale["progress"] = maintenance.descaleInterval > 0 
+            ? (maintenance.shotsSinceDescale * 100) / maintenance.descaleInterval 
+            : 0;
         
         JsonObject backflush = doc["backflush"].to<JsonObject>();
         backflush["shots"] = maintenance.shotsSinceBackflush;
@@ -628,22 +630,29 @@ inline void serverSetup() {
         backflush["shotsInterval"] = maintenance.backflushInterval;
         backflush["daysInterval"] = maintenance.backflushDaysInterval;
         backflush["due"] = maintenance.backflushDue;
-        backflush["progress"] = max(
-            (maintenance.shotsSinceBackflush * 100) / maintenance.backflushInterval,
-            (maintenance.daysSinceBackflush * 100) / maintenance.backflushDaysInterval
-        );
+        uint32_t shotsProgress = maintenance.backflushInterval > 0 
+            ? (maintenance.shotsSinceBackflush * 100) / maintenance.backflushInterval 
+            : 0;
+        uint32_t daysProgress = maintenance.backflushDaysInterval > 0 
+            ? (maintenance.daysSinceBackflush * 100) / maintenance.backflushDaysInterval 
+            : 0;
+        backflush["progress"] = max(shotsProgress, daysProgress);
         
         JsonObject basket = doc["basket"].to<JsonObject>();
         basket["shots"] = maintenance.shotsSinceBasketClean;
         basket["interval"] = maintenance.basketCleanInterval;
         basket["due"] = maintenance.basketCleanDue;
-        basket["progress"] = (maintenance.shotsSinceBasketClean * 100) / maintenance.basketCleanInterval;
+        basket["progress"] = maintenance.basketCleanInterval > 0 
+            ? (maintenance.shotsSinceBasketClean * 100) / maintenance.basketCleanInterval 
+            : 0;
         
         JsonObject refill = doc["refill"].to<JsonObject>();
         refill["shots"] = maintenance.shotsSinceRefill;
         refill["interval"] = maintenance.refillReminderInterval;
         refill["due"] = maintenance.refillDue;
-        refill["progress"] = (maintenance.shotsSinceRefill * 100) / maintenance.refillReminderInterval;
+        refill["progress"] = maintenance.refillReminderInterval > 0 
+            ? (maintenance.shotsSinceRefill * 100) / maintenance.refillReminderInterval 
+            : 0;
         
         String response;
         serializeJson(doc, response);

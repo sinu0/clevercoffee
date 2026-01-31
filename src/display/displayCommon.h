@@ -847,7 +847,7 @@ inline bool displayMachineState() {
  * @brief Display maintenance warning on OLED
  */
 inline void displayMaintenanceWarning() {
-    static uint8_t displayRotation = 0;
+    static uint8_t currentDueIndex = 0;
     static unsigned long lastRotation = 0;
     
     // Don't show during brew
@@ -855,27 +855,35 @@ inline void displayMaintenanceWarning() {
         return;
     }
     
+    // Build list of due maintenance items
+    const char* dueItems[4] = {nullptr, nullptr, nullptr, nullptr};
+    int dueCount = 0;
+    
+    if (maintenance.descaleDue) {
+        dueItems[dueCount++] = "! DESCALE DUE";
+    }
+    if (maintenance.backflushDue) {
+        dueItems[dueCount++] = "! BACKFLUSH DUE";
+    }
+    if (maintenance.basketCleanDue) {
+        dueItems[dueCount++] = "! CLEAN BASKET";
+    }
+    if (maintenance.refillDue) {
+        dueItems[dueCount++] = "! REFILL TANK";
+    }
+    
     // Only show if there's something due
-    if (!maintenance.descaleDue && !maintenance.backflushDue && 
-        !maintenance.basketCleanDue && !maintenance.refillDue) {
+    if (dueCount == 0) {
         return;
     }
     
     // Rotate notifications every 5 seconds
     if (millis() - lastRotation > 5000) {
-        displayRotation = (displayRotation + 1) % 4;
+        currentDueIndex = (currentDueIndex + 1) % dueCount;
         lastRotation = millis();
     }
     
+    // Display the current due item
     u8g2->setFont(u8g2_font_profont11_tr);
-    
-    if (displayRotation == 0 && maintenance.descaleDue) {
-        u8g2->drawStr(0, 60, "! DESCALE DUE");
-    } else if (displayRotation == 1 && maintenance.backflushDue) {
-        u8g2->drawStr(0, 60, "! BACKFLUSH DUE");
-    } else if (displayRotation == 2 && maintenance.basketCleanDue) {
-        u8g2->drawStr(0, 60, "! CLEAN BASKET");
-    } else if (displayRotation == 3 && maintenance.refillDue) {
-        u8g2->drawStr(0, 60, "! REFILL TANK");
-    }
+    u8g2->drawStr(0, 60, dueItems[currentDueIndex]);
 }
