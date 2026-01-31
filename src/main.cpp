@@ -1125,6 +1125,10 @@ void setup() {
                 mqttSensors["pressure"] = [] { return inputPressureFilter; };
             }
 
+            // Brew profile sensors
+            mqttSensors["profileActive"] = [] { return activeProfileIndex; };
+            mqttVars["profileLoad"] = "PROFILE_LOAD";
+
             snprintf(topic_will, sizeof(topic_will), "%s%s/%s", mqtt_topic_prefix.c_str(), hostname.c_str(), "status");
             snprintf(topic_set, sizeof(topic_set), "%s%s/+/%s", mqtt_topic_prefix.c_str(), hostname.c_str(), "set");
             mqtt.setServer(mqtt_server_ip.c_str(), mqtt_server_port);

@@ -6,6 +6,9 @@
 
 ParameterRegistry ParameterRegistry::_singleton;
 
+// Forward declaration for brew profiles
+extern void loadProfile(uint8_t index);
+
 // Global variables, needed for backwards compatibility
 extern bool pidON;
 extern bool usePonM;
@@ -495,6 +498,25 @@ void ParameterRegistry::initialize(Config& config) {
             &backflushOn
         ));
     }
+
+    // Brew Profiles - special parameter for loading profiles via MQTT
+    addParam(std::make_shared<Parameter>(
+        "PROFILE_LOAD",
+        "Load Profile",
+        kUInt8,
+        sOtherSection,
+        505,
+        []() -> bool {
+            return false;  // Not used for reading
+        },
+        [](const uint8_t val) {
+            loadProfile(val);
+        },
+        false,
+        "Load a brew profile by index (0-4)",
+        [] { return true; },
+        nullptr
+    ));
 
     // Power Section
     addBoolConfigParam(
