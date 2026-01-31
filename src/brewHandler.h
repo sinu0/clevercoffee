@@ -338,7 +338,9 @@ inline bool brew() {
         case kBrewRunning:
             {
                 if (currBrewState != lastBrewState) {
-                    setBrewPhase(PHASE_BREWING, 0, targetBrewTime);
+                    // Use targetBrewTime if set, otherwise 0 (no expected duration)
+                    double expectedDuration = (targetBrewTime > 0) ? targetBrewTime : 0;
+                    setBrewPhase(PHASE_BREWING, 0, expectedDuration);
                 }
                 
                 valveRelay->on();
