@@ -302,6 +302,7 @@ Timer printDisplayTimer(&DisplayTemplateManager::printScreen, 100);
 #include "powerHandler.h"
 #include "scaleHandler.h"
 #include "steamHandler.h"
+#include "maintenance.h"
 
 // Emergency stop if temp is too high
 void testEmergencyStop() {
@@ -1121,6 +1122,15 @@ void setup() {
                 mqttSensors["pressure"] = [] { return inputPressureFilter; };
             }
 
+            // Maintenance tracking sensors
+            mqttSensors["maintenance_descale_due"] = [] { return maintenance.descaleDue ? 1.0 : 0.0; };
+            mqttSensors["maintenance_descale_shots"] = [] { return static_cast<double>(maintenance.shotsSinceDescale); };
+            mqttSensors["maintenance_backflush_due"] = [] { return maintenance.backflushDue ? 1.0 : 0.0; };
+            mqttSensors["maintenance_backflush_shots"] = [] { return static_cast<double>(maintenance.shotsSinceBackflush); };
+            mqttSensors["maintenance_backflush_days"] = [] { return static_cast<double>(maintenance.daysSinceBackflush); };
+            mqttSensors["maintenance_basket_due"] = [] { return maintenance.basketCleanDue ? 1.0 : 0.0; };
+            mqttSensors["maintenance_refill_due"] = [] { return maintenance.refillDue ? 1.0 : 0.0; };
+
             snprintf(topic_will, sizeof(topic_will), "%s%s/%s", mqtt_topic_prefix.c_str(), hostname.c_str(), "status");
             snprintf(topic_set, sizeof(topic_set), "%s%s/+/%s", mqtt_topic_prefix.c_str(), hostname.c_str(), "set");
             mqtt.setServer(mqtt_server_ip.c_str(), mqtt_server_port);
@@ -1181,6 +1191,9 @@ void setup() {
         initScale();
     }
 
+    // Init Maintenance Tracker
+    initMaintenance();
+
     if (config.get<bool>("hardware.sensors.pressure.enabled")) {
         previousMillisPressure = currentTime;
     }
@@ -1225,6 +1238,13 @@ void loop() {
 
     // Update water tank sensor
     loopWaterTank();
+
+    // Check daily maintenance (once per day)
+    static unsigned long lastMaintenanceCheck = 0;
+    if (millis() - lastMaintenanceCheck > 86400000) {  // 24 hours
+        checkDailyMaintenance();
+        lastMaintenanceCheck = millis();
+    }
 
     // Update PID settings & machine state
     loopPid();

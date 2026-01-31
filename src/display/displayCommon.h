@@ -8,6 +8,7 @@
 
 #include "bitmaps.h"
 #include "languages.h"
+#include "maintenance.h"
 
 inline const u8g2_cb_t* getU8G2Rotation(const int rotationValue) {
     switch (rotationValue) {
@@ -840,4 +841,41 @@ inline bool displayMachineState() {
     }
 
     return false;
+}
+
+/**
+ * @brief Display maintenance warning on OLED
+ */
+inline void displayMaintenanceWarning() {
+    static uint8_t displayRotation = 0;
+    static unsigned long lastRotation = 0;
+    
+    // Don't show during brew
+    if (checkBrewActive()) {
+        return;
+    }
+    
+    // Only show if there's something due
+    if (!maintenance.descaleDue && !maintenance.backflushDue && 
+        !maintenance.basketCleanDue && !maintenance.refillDue) {
+        return;
+    }
+    
+    // Rotate notifications every 5 seconds
+    if (millis() - lastRotation > 5000) {
+        displayRotation = (displayRotation + 1) % 4;
+        lastRotation = millis();
+    }
+    
+    u8g2->setFont(u8g2_font_profont11_tr);
+    
+    if (displayRotation == 0 && maintenance.descaleDue) {
+        u8g2->drawStr(0, 60, "! DESCALE DUE");
+    } else if (displayRotation == 1 && maintenance.backflushDue) {
+        u8g2->drawStr(0, 60, "! BACKFLUSH DUE");
+    } else if (displayRotation == 2 && maintenance.basketCleanDue) {
+        u8g2->drawStr(0, 60, "! CLEAN BASKET");
+    } else if (displayRotation == 3 && maintenance.refillDue) {
+        u8g2->drawStr(0, 60, "! REFILL TANK");
+    }
 }

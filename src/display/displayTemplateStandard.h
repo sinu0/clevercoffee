@@ -118,5 +118,8 @@ inline void printScreen() {
     // Show heater output in %
     displayProgressbar(pidOutput / 10, 30, 60, 98);
 
+    // Display maintenance warnings
+    displayMaintenanceWarning();
+
     displayBufferReady = true;
 }

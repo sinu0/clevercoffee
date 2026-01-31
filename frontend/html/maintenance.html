@@ -1,0 +1,140 @@
+%HEADER%
+
+    <script type="module">
+        (window.appCreated ? Promise.resolve() : new Promise(resolve => window.addEventListener('appCreated', resolve)))
+            .then(() => vueApp.mount('#content'));
+    </script>
+
+    <div id="content" class="container my-2">
+        <br/>
+        <div class="underlined-heading mb-4">
+            <h3>Maintenance Tracker</h3>
+        </div>
+        <p class="text-muted">Keep your machine in top condition</p>
+        
+        <!-- Descaling -->
+        <div class="card mb-3" :class="{'border-danger': maintenance.descale.due}">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <strong>Descaling</strong>
+                    <span v-if="maintenance.descale.due" class="badge bg-danger ms-2">DUE!</span>
+                </span>
+                <button @click="reset('descale')" class="btn btn-sm btn-primary">Mark as Done</button>
+            </div>
+            <div class="card-body">
+                <div class="progress mb-2" style="height: 25px;">
+                    <div class="progress-bar" 
+                         :class="{'bg-danger': maintenance.descale.progress > 100}"
+                         :style="{width: Math.min(maintenance.descale.progress, 100) + '%'}">
+                    </div>
+                </div>
+                <p>{{ maintenance.descale.shots }} / {{ maintenance.descale.interval }} shots</p>
+            </div>
+        </div>
+        
+        <!-- Backflushing -->
+        <div class="card mb-3" :class="{'border-danger': maintenance.backflush.due}">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <strong>Backflushing</strong>
+                    <span v-if="maintenance.backflush.due" class="badge bg-danger ms-2">DUE!</span>
+                </span>
+                <button @click="reset('backflush')" class="btn btn-sm btn-primary">Mark as Done</button>
+            </div>
+            <div class="card-body">
+                <div class="progress mb-2" style="height: 25px;">
+                    <div class="progress-bar" 
+                         :class="{'bg-danger': maintenance.backflush.progress > 100}"
+                         :style="{width: Math.min(maintenance.backflush.progress, 100) + '%'}">
+                    </div>
+                </div>
+                <p>{{ maintenance.backflush.shots }} / {{ maintenance.backflush.shotsInterval }} shots | 
+                   {{ maintenance.backflush.days }} / {{ maintenance.backflush.daysInterval }} days</p>
+            </div>
+        </div>
+        
+        <!-- Basket Cleaning -->
+        <div class="card mb-3" :class="{'border-danger': maintenance.basket.due}">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <strong>Filter Basket Cleaning</strong>
+                    <span v-if="maintenance.basket.due" class="badge bg-danger ms-2">DUE!</span>
+                </span>
+                <button @click="reset('basket')" class="btn btn-sm btn-primary">Mark as Done</button>
+            </div>
+            <div class="card-body">
+                <div class="progress mb-2" style="height: 25px;">
+                    <div class="progress-bar" 
+                         :class="{'bg-danger': maintenance.basket.progress > 100}"
+                         :style="{width: Math.min(maintenance.basket.progress, 100) + '%'}">
+                    </div>
+                </div>
+                <p>{{ maintenance.basket.shots }} / {{ maintenance.basket.interval }} shots</p>
+            </div>
+        </div>
+        
+        <!-- Water Refill -->
+        <div class="card mb-3" :class="{'border-warning': maintenance.refill.due}">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <strong>Water Tank Refill</strong>
+                    <span v-if="maintenance.refill.due" class="badge bg-warning text-dark ms-2">CHECK</span>
+                </span>
+                <button @click="reset('refill')" class="btn btn-sm btn-primary">Mark as Done</button>
+            </div>
+            <div class="card-body">
+                <div class="progress mb-2" style="height: 25px;">
+                    <div class="progress-bar bg-info" 
+                         :style="{width: Math.min(maintenance.refill.progress, 100) + '%'}">
+                    </div>
+                </div>
+                <p>{{ maintenance.refill.shots }} / {{ maintenance.refill.interval }} shots</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        Object.assign(vueApp, {
+            data() {
+                return {
+                    maintenance: {
+                        descale: { shots: 0, interval: 200, due: false, progress: 0 },
+                        backflush: { shots: 0, days: 0, shotsInterval: 50, daysInterval: 7, due: false, progress: 0 },
+                        basket: { shots: 0, interval: 50, due: false, progress: 0 },
+                        refill: { shots: 0, interval: 30, due: false, progress: 0 }
+                    }
+                };
+            },
+            mounted() {
+                this.loadMaintenance();
+                setInterval(() => this.loadMaintenance(), 30000);
+            },
+            methods: {
+                async loadMaintenance() {
+                    try {
+                        const response = await fetch('/maintenance');
+                        this.maintenance = await response.json();
+                    } catch (error) {
+                        console.error('Failed to load maintenance:', error);
+                    }
+                },
+                async reset(type) {
+                    if (!confirm(`Mark ${type} as done?`)) return;
+                    
+                    try {
+                        const formData = new FormData();
+                        formData.append('type', type);
+                        await fetch('/maintenance/reset', { method: 'POST', body: formData });
+                        await this.loadMaintenance();
+                    } catch (error) {
+                        console.error('Failed to reset:', error);
+                    }
+                }
+            }
+        });
+    </script>
+
+</div>
+
+</body>
+</html>
