@@ -18,6 +18,7 @@
 #include <ESPAsyncWebServer.h>
 
 #include "LittleFS.h"
+#include "brewTimer.h"
 
 inline AsyncWebServer server(80);
 inline AsyncEventSource events("/events");
@@ -432,6 +433,31 @@ inline void serverSetup() {
         response->print(tTemp, 2);
         response->print(",\"heaterPower\":");
         response->print(hPower, 2);
+        response->print('}');
+        request->send(response);
+    });
+    
+    server.on("/brewstatus", HTTP_GET, [](AsyncWebServerRequest* request) {
+        AsyncResponseStream* response = request->beginResponseStream("application/json");
+        response->print('{');
+        response->print("\"brewing\":");
+        response->print(checkBrewActive() ? "true" : "false");
+        
+        if (checkBrewActive()) {
+            response->print(",\"brewPhase\":\"");
+            response->print(getPhaseDisplayName());
+            response->print("\",\"phaseCycle\":");
+            response->print(brewTimerInfo.pulseCycleNumber);
+            response->print(",\"totalCycles\":");
+            response->print(brewTimerInfo.totalPulseCycles);
+            response->print(",\"phaseTime\":");
+            response->print(brewTimerInfo.phaseElapsedTime, 1);
+            response->print(",\"totalTime\":");
+            response->print(brewTimerInfo.totalElapsedTime, 1);
+            response->print(",\"phaseProgress\":");
+            response->print(getPhaseProgress());
+        }
+        
         response->print('}');
         request->send(response);
     });

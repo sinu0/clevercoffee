@@ -78,8 +78,12 @@ inline void printScreen() {
         else if (shouldDisplayBrewTimer()) {
             const bool automaticBrewingEnabled = config.get<bool>("brew.mode") == 1;
 
-            // Time
-            if (automaticBrewingEnabled && config.get<bool>("brew.by_time.enabled")) {
+            // Show enhanced brew phase info during active brewing
+            if (checkBrewActive()) {
+                displayBrewPhaseInfo(32, 36);
+            }
+            // Show standard timer after brew finishes
+            else if (automaticBrewingEnabled && config.get<bool>("brew.by_time.enabled")) {
                 displayBrewTime(32, 36, langstring_brew, currBrewTime, totalTargetBrewTime);
             }
             else {

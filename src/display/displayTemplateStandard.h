@@ -79,7 +79,12 @@ inline void printScreen() {
         }
         else {
             if (shouldDisplayBrewTimer()) {
-                if (config.get<bool>("brew.by_time.enabled") && config.get<int>("brew.mode") == 1) {
+                // Show enhanced brew phase info during active brewing
+                if (checkBrewActive()) {
+                    displayBrewPhaseInfo(34, 36);
+                }
+                // Show standard timer after brew finishes
+                else if (config.get<bool>("brew.by_time.enabled") && config.get<int>("brew.mode") == 1) {
                     displayBrewTime(34, 36, langstring_brew, currBrewTime, totalTargetBrewTime);
                 }
                 else {

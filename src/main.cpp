@@ -1203,6 +1203,9 @@ void setup() {
     double fsUsage = ((double)LittleFS.usedBytes() / LittleFS.totalBytes()) * 100;
     LOGF(INFO, "LittleFS: %d%% (used %ld bytes from %ld bytes)", (int)ceil(fsUsage), LittleFS.usedBytes(), LittleFS.totalBytes());
 
+    // Initialize brew timer
+    initBrewTimer();
+
     systemInitialized = true;
 
     // For momentary switches, start in normal operation mode

@@ -8,6 +8,7 @@
 
 #include "bitmaps.h"
 #include "languages.h"
+#include "../brewTimer.h"
 
 inline const u8g2_cb_t* getU8G2Rotation(const int rotationValue) {
     switch (rotationValue) {
@@ -273,6 +274,68 @@ inline void displayBrewTime(const int x, const int y, const char* label, const d
         u8g2->print(" s");
     }
 }
+
+/**
+ * @brief Draw brew phase information with progress bar
+ * 
+ * Displays the current brew phase name, pulse cycle (if applicable),
+ * a visual progress bar, and timing information
+ * 
+ * @param x Horizontal position to start drawing  
+ * @param y Vertical position to start drawing
+ */
+inline void displayBrewPhaseInfo(const int x, const int y) {
+    if (!shouldDisplayBrewTimer()) return;
+    
+    // Phase name
+    u8g2->setFont(u8g2_font_profont12_tr);
+    u8g2->drawStr(x, y, getPhaseDisplayName());
+    
+    // Cycle indicator (if pulse mode)
+    if (brewTimerInfo.currentPhase == PHASE_PRE_INF_PULSE_ON || 
+        brewTimerInfo.currentPhase == PHASE_PRE_INF_PULSE_OFF) {
+        char cycleStr[10];
+        snprintf(cycleStr, sizeof(cycleStr), "%d/%d", 
+                 brewTimerInfo.pulseCycleNumber, 
+                 brewTimerInfo.totalPulseCycles);
+        u8g2->drawStr(x + 70, y, cycleStr);
+    }
+    
+    // Progress bar (5 blocks)
+    const int barY = y + 10;
+    const int barHeight = 5;
+    const int blockWidth = 24;
+    const int blockSpacing = 2;
+    uint8_t progress = getPhaseProgress();
+    
+    for (int i = 0; i < 5; i++) {
+        int blockX = x + i * (blockWidth + blockSpacing);
+        int fillWidth = 0;
+        
+        if (progress >= (i + 1) * 20) {
+            fillWidth = blockWidth;  // Full block
+        } else if (progress > i * 20) {
+            fillWidth = ((progress - i * 20) * blockWidth) / 20;  // Partial block
+        }
+        
+        // Draw block outline
+        u8g2->drawFrame(blockX, barY, blockWidth, barHeight);
+        
+        // Fill if needed
+        if (fillWidth > 0) {
+            u8g2->drawBox(blockX, barY, fillWidth, barHeight);
+        }
+    }
+    
+    // Times
+    char timeStr[20];
+    snprintf(timeStr, sizeof(timeStr), "%.1fs / %.1fs", 
+             brewTimerInfo.phaseElapsedTime, 
+             brewTimerInfo.totalElapsedTime);
+    u8g2->setFont(u8g2_font_profont11_tr);
+    u8g2->drawStr(x, y + 20, timeStr);
+}
+
 
 /**
  * @brief Draw the current weight with error handling and target indicators at given position

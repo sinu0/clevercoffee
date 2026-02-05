@@ -398,3 +398,51 @@ if (!!window.EventSource) {
         false
     )
 }
+
+// Poll brew status and update UI
+function updateBrewStatus() {
+    fetch('/brewstatus')
+        .then(response => response.json())
+        .then(data => {
+            const brewInfo = document.getElementById('brew-info');
+            if (!brewInfo) return; // Not on home page
+            
+            if (data.brewing) {
+                brewInfo.style.display = 'block';
+                
+                // Update phase name with cycle if applicable
+                let phaseName = data.brewPhase;
+                if (data.phaseCycle > 0 && data.totalCycles > 0) {
+                    phaseName += ` ${data.phaseCycle}/${data.totalCycles}`;
+                }
+                document.getElementById('brew-phase-name').textContent = phaseName;
+                
+                // Update times
+                document.getElementById('phase-time').textContent = data.phaseTime.toFixed(1) + 's';
+                document.getElementById('total-time').textContent = data.totalTime.toFixed(1) + 's';
+                
+                // Update progress bar
+                const progressBar = document.getElementById('phase-progress');
+                progressBar.style.width = data.phaseProgress + '%';
+                progressBar.setAttribute('aria-valuenow', data.phaseProgress);
+                
+                // Poll faster during brew (every 100ms)
+                setTimeout(updateBrewStatus, 100);
+            } else {
+                brewInfo.style.display = 'none';
+                // Poll slower when not brewing (every 1000ms)
+                setTimeout(updateBrewStatus, 1000);
+            }
+        })
+        .catch(err => {
+            console.error('Error fetching brew status:', err);
+            setTimeout(updateBrewStatus, 1000);
+        });
+}
+
+// Start polling brew status when page loads
+if (document.readyState === 'complete') {
+    updateBrewStatus();
+} else {
+    window.addEventListener('load', updateBrewStatus);
+}
