@@ -46,6 +46,11 @@ const vueApp = Vue.createApp({
 
     methods: {
         async fetchParameters(filter = '') {
+            // Check if mock mode is enabled
+            if (window.MockAPI && window.MockAPI.isMockMode) {
+                return this.fetchParametersMock(filter);
+            }
+            
             this.parameters = [];
             this.originalValues = {}; // Reset original values
             let offset = 0;
@@ -86,6 +91,47 @@ const vueApp = Vue.createApp({
                 catch (err) {
                     console.error('Error fetching parameters:', err);
                     moreData = false;
+                }
+            }
+        },
+
+        async fetchParametersMock(filter = '') {
+            this.parameters = [];
+            this.originalValues = {};
+            let offset = 0;
+            const limit = 5;
+            let moreData = true;
+
+            while (moreData) {
+                try {
+                    const json = await window.MockAPI.getParameters(filter, offset, limit);
+
+                    if (!json.parameters || json.parameters.length === 0) {
+                        moreData = false;
+                        break;
+                    }
+
+                    json.parameters.forEach(param => {
+                        this.parameters.push(param);
+                        this.originalValues[param.name] = param.value;
+                    });
+
+                    if (json.parameters.length < limit) {
+                        moreData = false;
+                    } else {
+                        offset += limit;
+                    }
+                } catch (err) {
+                    console.error('Error fetching mock parameters:', err);
+                    moreData = false;
+                }
+            }
+            
+            // Set initial temperature in mock mode
+            if (window.MockAPI) {
+                const tempElement = document.getElementById('varTEMP');
+                if (tempElement) {
+                    tempElement.textContent = window.MockAPI.getTemperature();
                 }
             }
         },
@@ -456,6 +502,15 @@ const vueApp = Vue.createApp({
         },
 
         toggleFunction(endpoint, paramName, param, targetElement) {
+            // Check if mock mode is enabled
+            if (window.MockAPI && window.MockAPI.isMockMode) {
+                window.MockAPI.toggleFunction(endpoint, paramName).then(result => {
+                    // Mock API already toggled the value, just update the UI
+                    param.value = result.value;
+                });
+                return;
+            }
+            
             const formData = new FormData();
             formData.append(`var${paramName}`, param.value === 1 ? '0' : '1');
 

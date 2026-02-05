@@ -152,6 +152,10 @@ runSingleCDNProbe("https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstr
 })
 .then(src => {
   console.log(`uPlot CSS loaded from ${src}`);
+  return loadWhenFree(minHeap, "/css/custom.css", null, "css");
+})
+.then(src => {
+  console.log(`Custom CSS loaded from ${src}`);
   
 // Load JS in sequence
   return loadWhenFree(minHeap, "/js/vue.3.2.47.min.js", "https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.prod.min.js", "js", () => { window.Vue = Vue; });
@@ -170,6 +174,10 @@ runSingleCDNProbe("https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstr
 })
 .then(src => {
   console.log(`Bootstrap loaded from ${src}`);
+  return waitForHeap(minHeap).then(() => import('/js/mock-data.js?v=1'));
+})
+.then(() => {
+  console.log("Mock data module loaded");
   return waitForHeap(minHeap).then(() => import('/js/app.js?v=1'));
 })
 .then(() => {

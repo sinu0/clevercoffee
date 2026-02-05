@@ -64,11 +64,13 @@
                 </div>
             </div>
 
-            <div class="card card-accent-dark mb-5 shadow-sm rounded">
+            <div class="card card-accent-dark mb-4 shadow-sm rounded">
                 <form @submit.prevent="postParameters">
                     <template v-for="(section, sectionKey) in parameterSectionsComputed">
                         <div class="card-body bg-light pb-1 rounded">
-                            <h5 class="card-title"> {{ sectionName(sectionKey) }} </h5>
+                            <h5 class="card-title">
+                                <i class="fa-solid fa-cog me-2"></i>{{ sectionName(sectionKey) }}
+                            </h5>
                         </div>
                         <div class="card-body">
                             <template v-for="(group, groupKey) in section">

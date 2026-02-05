@@ -1,0 +1,401 @@
+/* Custom Modern CSS for Clever Coffee */
+
+/* Color Palette - Modern Pastel Theme */
+:root {
+    --primary-color: #6B9BD1;
+    --primary-hover: #5A8AC4;
+    --secondary-color: #A8C5E2;
+    --accent-color: #7FA9D4;
+    --success-color: #81C784;
+    --danger-color: #E57373;
+    --warning-color: #FFD54F;
+    --info-color: #4FC3F7;
+    --dark-color: #455A64;
+    --light-bg: #F5F7FA;
+    --card-bg: #FFFFFF;
+    --text-primary: #37474F;
+    --text-secondary: #78909C;
+    --border-radius: 12px;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.10);
+}
+
+/* Global Styles */
+body {
+    background: linear-gradient(135deg, #E8F4F8 0%, #F0F4F8 100%);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    color: var(--text-primary);
+    min-height: 100vh;
+}
+
+/* Navigation Bar Improvements */
+.navbar {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%) !important;
+    box-shadow: var(--shadow-md);
+    padding: 0.75rem 1rem;
+}
+
+.navbar-brand img {
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+    transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover img {
+    transform: scale(1.05);
+}
+
+.nav-link {
+    color: rgba(255,255,255,0.9) !important;
+    font-weight: 500;
+    padding: 0.5rem 1rem !important;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    margin: 0 0.25rem;
+}
+
+.nav-link:hover {
+    background: rgba(255,255,255,0.15);
+    color: #ffffff !important;
+    transform: translateY(-2px);
+}
+
+.nav-link i {
+    margin-right: 0.5rem;
+    font-size: 1.1em;
+}
+
+/* Card Improvements */
+.card {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    background: var(--card-bg);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.card-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.card-body.bg-light {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+    border-bottom: 3px solid var(--primary-color);
+}
+
+/* Temperature Display */
+#varTEMP {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.card-body label.form-label {
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Switch Improvements */
+.form-switch-lg .form-check-input {
+    width: 3.5rem;
+    height: 1.75rem;
+    cursor: pointer;
+    background-color: #e9ecef;
+    border: 2px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.form-switch-lg .form-check-input:checked {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+    box-shadow: 0 0 12px rgba(40, 167, 69, 0.4);
+}
+
+.form-switch-lg .form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(111, 78, 55, 0.25);
+    border-color: var(--primary-color);
+}
+
+/* Button Improvements */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 0.625rem 1.5rem;
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary-hover) 0%, var(--primary-color) 100%);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--success-color) 0%, #66BB6A 100%);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, var(--warning-color) 0%, #FFCA28 100%);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--danger-color) 0%, #EF5350 100%);
+}
+
+.btn-outline-primary {
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    background: transparent;
+}
+
+.btn-outline-primary:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Form Inputs */
+.form-control,
+.form-select {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    padding: 0.625rem 0.875rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(111, 78, 55, 0.15);
+}
+
+/* Table Improvements */
+.table {
+    margin-bottom: 0;
+}
+
+.table td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.table td:first-child {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Alert Improvements */
+.alert {
+    border-radius: var(--border-radius);
+    border: none;
+    box-shadow: var(--shadow-sm);
+    padding: 1.25rem;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+    color: #0c5460;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+    color: #856404;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
+}
+
+/* Chart Containers */
+#chart-temperature,
+#chart-heater {
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 1rem;
+}
+
+/* Status Section Special Styling */
+.status-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    line-height: 1.2;
+}
+
+.status-label {
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+/* Responsive Improvements */
+@media (max-width: 768px) {
+    .card-title {
+        font-size: 1.1rem;
+    }
+    
+    #varTEMP {
+        font-size: 2rem;
+    }
+    
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .nav-link {
+        padding: 0.5rem !important;
+    }
+}
+
+/* Loading Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Improved Spacing */
+.container {
+    max-width: 1200px;
+}
+
+.content-wrapper {
+    min-height: calc(100vh - 60px);
+    padding-bottom: 2rem;
+}
+
+/* Help Icon Improvements */
+.fa-question-circle {
+    color: var(--info-color);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.fa-question-circle:hover {
+    color: var(--primary-color);
+    transform: scale(1.1);
+}
+
+/* Underlined Heading */
+.underlined-heading h3 {
+    border-bottom: 3px solid var(--primary-color);
+    padding-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Number Input Component */
+.vue-number-input {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.vue-number-input input {
+    border: 2px solid #e9ecef !important;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.vue-number-input button {
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    transition: all 0.3s ease;
+}
+
+.vue-number-input button:hover {
+    background: var(--primary-hover) !important;
+}
+
+/* Checkbox Improvements */
+.form-check-input {
+    width: 1.5rem;
+    height: 1.5rem;
+    cursor: pointer;
+    border: 2px solid #dee2e6;
+}
+
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* Smooth Transitions - Applied to specific elements for better performance */
+button,
+.btn,
+.card,
+.nav-link,
+.form-control,
+.form-select,
+.form-check-input,
+a {
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Improved File Input */
+.form-control[type="file"] {
+    padding: 0.75rem;
+    background: #f8f9fa;
+}
+
+.form-control[type="file"]::-webkit-file-upload-button {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    margin-right: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.form-control[type="file"]::-webkit-file-upload-button:hover {
+    background: var(--primary-hover);
+}
+
+/* Note: Brand icons (fa-brands) require FontAwesome to be loaded with brand support.
+   The fontawesome-6.2.1.min.css includes all icon sets (solid, regular, brands). */
