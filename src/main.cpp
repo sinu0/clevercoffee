@@ -21,6 +21,7 @@
 // Includes
 #include "Config.h"
 #include "ParameterRegistry.h"
+#include "brewProfiles.h"
 
 // Utilities
 #include "utils/Timer.h"
@@ -927,6 +928,9 @@ void setup() {
         ParameterRegistry::getInstance().syncGlobalVariables();
     }
 
+    // Initialize brew profiles
+    initProfiles();
+
     Wire.begin();
 
     if (config.get<bool>("hardware.oled.enabled")) {
@@ -1125,6 +1129,10 @@ void setup() {
             if (config.get<bool>("hardware.sensors.pressure.enabled")) {
                 mqttSensors["pressure"] = [] { return inputPressureFilter; };
             }
+
+            // Brew profile sensors
+            mqttSensors["profileActive"] = [] { return activeProfileIndex; };
+            mqttVars["profileLoad"] = "PROFILE_LOAD";
 
             snprintf(topic_will, sizeof(topic_will), "%s%s/%s", mqtt_topic_prefix.c_str(), hostname.c_str(), "status");
             snprintf(topic_set, sizeof(topic_set), "%s%s/+/%s", mqtt_topic_prefix.c_str(), hostname.c_str(), "set");

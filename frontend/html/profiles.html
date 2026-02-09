@@ -1,0 +1,208 @@
+%HEADER%
+
+    <script type="module">
+        (window.appCreated ? Promise.resolve() : new Promise(resolve => window.addEventListener('appCreated', resolve)))
+            .then(() => vueApp.mount('#content'));
+    </script>
+
+    <style>
+        .profile-card { 
+            cursor: pointer; 
+            transition: all 0.3s;
+            min-height: 200px;
+        }
+        .profile-card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
+        }
+        .profile-card.active { 
+            border: 3px solid #28a745; 
+            background-color: #f0fff4;
+        }
+        .profile-card.empty { 
+            opacity: 0.6; 
+            border-style: dashed; 
+        }
+    </style>
+
+    <div class="content-wrapper">
+        <div id="content" class="container my-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Brew Profiles</h2>
+                <button @click="showSaveDialog = true" class="btn btn-primary">
+                    <i class="fa-solid fa-save"></i> Save Current Settings
+                </button>
+            </div>
+            
+            <!-- Profile Cards Grid -->
+            <div class="row">
+                <div v-for="profile in profiles" :key="profile.index" class="col-md-4 mb-4">
+                    <div 
+                        class="card profile-card"
+                        :class="{ active: profile.isCurrentActive, empty: !profile.active }"
+                        @click="loadProfile(profile.index)"
+                    >
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title">
+                                    {{ profile.name }}
+                                    <span v-if="profile.isCurrentActive" class="badge bg-success ms-2">Active</span>
+                                </h5>
+                                <div class="dropdown" v-if="profile.active" @click.stop>
+                                    <button class="btn btn-sm btn-link" data-bs-toggle="dropdown">
+                                        <i class="fa-solid fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" @click="renameProfile(profile.index)">Rename</a></li>
+                                        <li><a class="dropdown-item text-danger" @click="deleteProfile(profile.index)">Delete</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div v-if="profile.active">
+                                <p class="mb-1"><strong>Temp:</strong> {{ profile.brewSetpoint }}°C</p>
+                                <p class="mb-1"><strong>Pre-Inf:</strong> {{ profile.preInfusionEnabled ? 'Yes' : 'No' }}</p>
+                                <p class="mb-1"><strong>Mode:</strong> {{ profile.brewMode === 0 ? 'Manual' : 'Auto' }}</p>
+                                <button @click.stop="loadProfile(profile.index)" class="btn btn-sm btn-outline-primary mt-2 w-100">
+                                    <i class="fa-solid fa-play"></i> Load Profile
+                                </button>
+                            </div>
+                            <div v-else class="text-center py-4">
+                                <i class="fa-solid fa-plus-circle fa-3x text-muted"></i>
+                                <p class="text-muted mt-2">Empty Slot</p>
+                                <button @click.stop="saveToSlot(profile.index)" class="btn btn-sm btn-primary">
+                                    Save Here
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Save Dialog Modal -->
+            <div v-if="showSaveDialog" class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Save Current Settings</h5>
+                            <button @click="showSaveDialog = false" type="button" class="btn-close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <label class="form-label">Profile Name</label>
+                            <input v-model="newProfileName" class="form-control" placeholder="e.g. Light Roast">
+                            
+                            <label class="form-label mt-3">Save to Slot</label>
+                            <select v-model="selectedSlot" class="form-select">
+                                <option v-for="i in 5" :key="i-1" :value="i-1">
+                                    Slot {{ i }} - {{ profiles[i-1].active ? profiles[i-1].name : 'Empty' }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="modal-footer">
+                            <button @click="showSaveDialog = false" class="btn btn-secondary">Cancel</button>
+                            <button @click="saveProfile" class="btn btn-primary">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        window.vueApp = {
+            data() {
+                return {
+                    profiles: [],
+                    activeIndex: null,
+                    showSaveDialog: false,
+                    newProfileName: '',
+                    selectedSlot: 0
+                };
+            },
+            mounted() {
+                this.loadProfiles();
+            },
+            methods: {
+                async loadProfiles() {
+                    try {
+                        const response = await fetch('/profiles');
+                        const data = await response.json();
+                        this.profiles = data.profiles;
+                        this.activeIndex = data.activeIndex;
+                    } catch (error) {
+                        console.error('Failed to load profiles:', error);
+                        alert('Failed to load profiles');
+                    }
+                },
+                async loadProfile(index) {
+                    if (!this.profiles[index].active) return;
+                    
+                    try {
+                        const formData = new FormData();
+                        formData.append('index', index);
+                        await fetch('/profiles/load', { method: 'POST', body: formData });
+                        await this.loadProfiles();
+                        alert(`Profile "${this.profiles[index].name}" loaded!`);
+                    } catch (error) {
+                        console.error('Failed to load profile:', error);
+                        alert('Failed to load profile');
+                    }
+                },
+                saveToSlot(index) {
+                    this.selectedSlot = index;
+                    this.newProfileName = this.profiles[index].active ? this.profiles[index].name : '';
+                    this.showSaveDialog = true;
+                },
+                async saveProfile() {
+                    if (!this.newProfileName.trim()) {
+                        alert('Please enter a profile name');
+                        return;
+                    }
+                    
+                    try {
+                        const formData = new FormData();
+                        formData.append('index', this.selectedSlot);
+                        formData.append('name', this.newProfileName);
+                        await fetch('/profiles/save', { method: 'POST', body: formData });
+                        await this.loadProfiles();
+                        this.showSaveDialog = false;
+                        this.newProfileName = '';
+                        alert('Profile saved successfully!');
+                    } catch (error) {
+                        console.error('Failed to save profile:', error);
+                        alert('Failed to save profile');
+                    }
+                },
+                async deleteProfile(index) {
+                    if (!confirm(`Delete profile "${this.profiles[index].name}"?`)) return;
+                    
+                    try {
+                        const formData = new FormData();
+                        formData.append('index', index);
+                        await fetch('/profiles/delete', { method: 'POST', body: formData });
+                        await this.loadProfiles();
+                    } catch (error) {
+                        console.error('Failed to delete profile:', error);
+                        alert('Failed to delete profile');
+                    }
+                },
+                async renameProfile(index) {
+                    const newName = prompt('Enter new name:', this.profiles[index].name);
+                    if (!newName) return;
+                    
+                    try {
+                        const formData = new FormData();
+                        formData.append('index', index);
+                        formData.append('name', newName);
+                        await fetch('/profiles/rename', { method: 'POST', body: formData });
+                        await this.loadProfiles();
+                    } catch (error) {
+                        console.error('Failed to rename profile:', error);
+                        alert('Failed to rename profile');
+                    }
+                }
+            }
+        };
+    </script>
+</body>
+</html>
