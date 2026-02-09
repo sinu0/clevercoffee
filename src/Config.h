@@ -310,6 +310,12 @@ class Config {
             _configDefs.emplace("system.timing_debug.enabled", ConfigDef::forBool(false));
             _configDefs.emplace("system.showdisplay.enabled", ConfigDef::forBool(true));
 
+            // Temperature Ready Indicator
+            _configDefs.emplace("system.temp_ready.enabled", ConfigDef::forBool(true));
+            _configDefs.emplace("system.temp_ready.threshold", ConfigDef::forDouble(0.3, 0.1, 1.0));
+            _configDefs.emplace("system.temp_ready.duration", ConfigDef::forInt(5, 3, 30));
+            _configDefs.emplace("system.temp_ready.led_blink", ConfigDef::forBool(false));
+
             // Display
             _configDefs.emplace("display.template", ConfigDef::forInt(0, 0, 4));
             _configDefs.emplace("display.inverted", ConfigDef::forBool(false));

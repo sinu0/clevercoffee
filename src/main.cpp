@@ -209,6 +209,14 @@ double standbyModeTime = STANDBY_MODE_TIME;
 
 #include "standby.h"
 
+// Temperature Ready Indicator
+#include "tempStability.h"
+
+bool tempReadyEnabled = true;
+double tempReadyThreshold = 0.3;
+uint8_t tempReadyDuration = 5;
+bool tempReadyLedBlink = false;
+
 // Variables to hold PID values (Temp input, Heater output)
 double temperature, pidOutput;
 bool steamON = false;
@@ -1081,6 +1089,14 @@ void setup() {
             mqttSensors["currentKi"] = [] { return bPID.GetKi(); };
             mqttSensors["currentKd"] = [] { return bPID.GetKd(); };
             mqttSensors["machineState"] = [] { return machineState; };
+            
+            // Temperature ready sensors
+            mqttSensors["temp_ready"] = [] { return tempStability.isStable ? 1.0 : 0.0; };
+            mqttSensors["temp_stability_stddev"] = [] { return calculateStdDev(); };
+            mqttSensors["temp_stability_duration"] = [] { 
+                if (!tempStability.isStable) return 0.0;
+                return static_cast<double>((millis() - tempStability.stableStartTime) / 1000); 
+            };
 
             if (config.get<bool>("hardware.switches.brew.enabled")) {
                 mqttVars["aggbKp"] = "pid.bd.kp";
@@ -1172,6 +1188,11 @@ void setup() {
         temperature -= brewTempOffset;
     }
 
+    // Initialize temperature stability monitoring
+    initTempStability();
+    tempStability.stabilityThreshold = tempReadyThreshold;
+    tempStability.stabilityDuration = tempReadyDuration;
+
     // Initialisation MUST be at the very end of the init(), otherwise the
     // time comparision in loop() will have a big offset
     unsigned long currentTime = millis();
@@ -1256,6 +1277,26 @@ void loopPid() {
             temperature -= brewTempOffset;
         }
     }
+
+    // Update temperature stability monitoring
+    if (tempReadyEnabled && machineState == kPidNormal && !steamON) {
+        addTempReading(temperature, brewSetpoint);
+    }
+
+    // Reset stability when entering brew or steam modes
+    static bool isFirstIteration = true;
+    static MachineState lastMachineState = kPidNormal;
+    
+    if (!isFirstIteration && machineState != lastMachineState) {
+        if (machineState == kBrew || machineState == kSteam || machineState == kManualFlush || machineState == kHotWater) {
+            resetStability();
+        }
+    }
+    
+    if (isFirstIteration) {
+        isFirstIteration = false;
+    }
+    lastMachineState = machineState;
 
     static bool wifiWasConnected = false;
 
@@ -1491,12 +1532,36 @@ void loopPid() {
 }
 
 void loopLED() {
+    static unsigned long lastBlink = 0;
+    static bool ledState = false;
+    
     if (config.get<bool>("hardware.leds.status.enabled") && statusLed != nullptr) {
-        if ((machineState == kPidNormal && (fabs(temperature - setpoint) < 0.3)) || (temperature > 115 && fabs(temperature - setpoint) < 5)) {
-            statusLed->turnOn();
+        // LED blink when temperature is ready
+        if (tempReadyLedBlink && isTempReadyIndicatorActive()) {
+            // millis() arithmetic naturally handles rollover
+            if (millis() - lastBlink > TEMP_READY_BLINK_INTERVAL_MS) {
+                ledState = !ledState;
+                if (ledState) {
+                    statusLed->turnOn();
+                } else {
+                    statusLed->turnOff();
+                }
+                lastBlink = millis();
+            }
         }
+        // Normal status LED behavior
         else {
-            statusLed->turnOff();
+            // Reset blink state when not in ready mode
+            // Set to current millis() to ensure full interval on re-entry
+            ledState = false;
+            lastBlink = millis();
+            
+            if ((machineState == kPidNormal && (fabs(temperature - setpoint) < 0.3)) || (temperature > 115 && fabs(temperature - setpoint) < 5)) {
+                statusLed->turnOn();
+            }
+            else {
+                statusLed->turnOff();
+            }
         }
     }
 

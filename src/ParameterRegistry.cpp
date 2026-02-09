@@ -51,6 +51,12 @@ extern const char sysVersion[64];
 extern bool includeDisplayInLogs;
 extern bool timingDebugActive;
 
+// Temperature Ready Indicator
+extern bool tempReadyEnabled;
+extern double tempReadyThreshold;
+extern uint8_t tempReadyDuration;
+extern bool tempReadyLedBlink;
+
 const char* switchTypes[2] = {"Momentary", "Toggle"};
 const char* switchModes[2] = {"Normally Open", "Normally Closed"};
 const char* relayTriggerTypes[2] = {"Low Trigger", "High Trigger"};
@@ -904,6 +910,52 @@ void ParameterRegistry::initialize(Config& config) {
         &includeDisplayInLogs,
         "Enable or disable showing sendBuffer loops in debug logs",
         [&config] { return config.get<int>("system.log_level") == static_cast<int>(Logger::Level::DEBUG); }
+    );
+
+    // Temperature Ready Indicator
+    addBoolConfigParam(
+        "system.temp_ready.enabled",
+        "Temperature Ready Indicator",
+        sSystemSection,
+        1601,
+        &tempReadyEnabled,
+        "Show indicator when temperature is stable and ready for brewing"
+    );
+
+    addNumericConfigParam<double>(
+        "system.temp_ready.threshold",
+        "Stability Threshold",
+        kDouble,
+        sSystemSection,
+        1602,
+        &tempReadyThreshold,
+        0.1,
+        1.0,
+        "Maximum temperature deviation (°C) to be considered stable",
+        [&config] { return config.get<bool>("system.temp_ready.enabled"); }
+    );
+
+    addNumericConfigParam<uint8_t>(
+        "system.temp_ready.duration",
+        "Stable Duration",
+        kUInt8,
+        sSystemSection,
+        1603,
+        &tempReadyDuration,
+        3,
+        30,
+        "Required stable duration (seconds)",
+        [&config] { return config.get<bool>("system.temp_ready.enabled"); }
+    );
+
+    addBoolConfigParam(
+        "system.temp_ready.led_blink",
+        "LED Blink When Ready",
+        sSystemSection,
+        1604,
+        &tempReadyLedBlink,
+        "Blink status LED when temperature is ready",
+        [&config] { return config.get<bool>("system.temp_ready.enabled"); }
     );
 
     // Hardware section

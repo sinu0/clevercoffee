@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "tempStability.h"
+
 /**
  * @brief Send data to display
  */
@@ -57,6 +59,14 @@ inline void printScreen() {
     u8g2->setCursor(115, 26);
     u8g2->print(static_cast<char>(176));
     u8g2->print("C");
+
+    // Temperature ready indicator
+    if (isTempReadyIndicatorActive()) {
+        u8g2->setFont(u8g2_font_profont10_tf);
+        u8g2->setCursor(100, 36);
+        u8g2->print("READY");
+        u8g2->setFont(u8g2_font_profont11_tf);
+    }
 
     displayThermometerOutline(4, 62);
 
