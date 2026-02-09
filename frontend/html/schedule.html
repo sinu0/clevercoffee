@@ -1,0 +1,192 @@
+%HEADER%
+
+    <script type="module">
+        const { createApp } = Vue;
+        
+        const app = createApp({
+            data() {
+                return {
+                    schedules: [],
+                    timezone: 0,
+                    ntpSynced: false,
+                    nextWake: 0,
+                    days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    timezones: [
+                        { value: -12, label: 'UTC-12' },
+                        { value: -11, label: 'UTC-11' },
+                        { value: -10, label: 'UTC-10' },
+                        { value: -9, label: 'UTC-9' },
+                        { value: -8, label: 'UTC-8 (PST)' },
+                        { value: -7, label: 'UTC-7 (MST)' },
+                        { value: -6, label: 'UTC-6 (CST)' },
+                        { value: -5, label: 'UTC-5 (EST)' },
+                        { value: -4, label: 'UTC-4 (AST)' },
+                        { value: -3, label: 'UTC-3' },
+                        { value: -2, label: 'UTC-2' },
+                        { value: -1, label: 'UTC-1' },
+                        { value: 0, label: 'UTC+0 (GMT)' },
+                        { value: 1, label: 'UTC+1 (CET)' },
+                        { value: 2, label: 'UTC+2 (EET)' },
+                        { value: 3, label: 'UTC+3' },
+                        { value: 4, label: 'UTC+4' },
+                        { value: 5, label: 'UTC+5' },
+                        { value: 6, label: 'UTC+6' },
+                        { value: 7, label: 'UTC+7' },
+                        { value: 8, label: 'UTC+8 (CST)' },
+                        { value: 9, label: 'UTC+9 (JST)' },
+                        { value: 10, label: 'UTC+10' },
+                        { value: 11, label: 'UTC+11' },
+                        { value: 12, label: 'UTC+12' },
+                        { value: 13, label: 'UTC+13' },
+                        { value: 14, label: 'UTC+14' }
+                    ]
+                };
+            },
+            mounted() {
+                this.loadSchedule();
+            },
+            methods: {
+                async loadSchedule() {
+                    try {
+                        const response = await fetch('/schedule');
+                        const data = await response.json();
+                        
+                        this.timezone = data.timezone;
+                        this.ntpSynced = data.ntpSynced;
+                        this.nextWake = data.nextWake;
+                        
+                        this.schedules = data.schedules.map(s => ({
+                            ...s,
+                            time: `${String(s.hour).padStart(2, '0')}:${String(s.minute).padStart(2, '0')}`
+                        }));
+                    } catch (error) {
+                        console.error('Failed to load schedule:', error);
+                    }
+                },
+                async updateSchedule(index) {
+                    const schedule = this.schedules[index];
+                    const [hour, minute] = schedule.time.split(':');
+                    
+                    const formData = new FormData();
+                    formData.append('index', index);
+                    formData.append('enabled', schedule.enabled);
+                    formData.append('hour', hour);
+                    formData.append('minute', minute);
+                    formData.append('days', schedule.days);
+                    formData.append('name', schedule.name);
+                    
+                    try {
+                        await fetch('/schedule/update', { method: 'POST', body: formData });
+                        await this.loadSchedule();
+                    } catch (error) {
+                        console.error('Failed to update schedule:', error);
+                    }
+                },
+                async updateTimezone() {
+                    const formData = new FormData();
+                    formData.append('offset', this.timezone);
+                    
+                    try {
+                        await fetch('/schedule/timezone', { method: 'POST', body: formData });
+                        await this.loadSchedule();
+                    } catch (error) {
+                        console.error('Failed to update timezone:', error);
+                    }
+                },
+                toggleDay(scheduleIndex, dayIndex) {
+                    const schedule = this.schedules[scheduleIndex];
+                    schedule.days ^= (1 << dayIndex);  // Toggle bit
+                    this.updateSchedule(scheduleIndex);
+                },
+                isDaySelected(days, dayIndex) {
+                    return (days & (1 << dayIndex)) !== 0;
+                },
+                formatNextWake() {
+                    if (!this.nextWake) return 'No schedule';
+                    const date = new Date(this.nextWake * 1000);
+                    return date.toLocaleString();
+                }
+            }
+        });
+
+        (window.appCreated ? Promise.resolve() : new Promise(resolve => window.addEventListener('appCreated', resolve)))
+            .then(() => app.mount('#content'));
+    </script>
+
+    <div class="content-wrapper">
+        <div id="content" class="container my-5">
+            <div class="card card-accent-dark mb-4 shadow-sm rounded">
+                <div class="card-body bg-light pb-1 rounded">
+                    <h5 class="card-title">
+                        <i class="fa-solid fa-clock"></i> Wake-Up Schedule
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Automatically exit standby at scheduled times</p>
+                    
+                    <!-- Timezone Configuration -->
+                    <div class="card mb-4">
+                        <div class="card-header">Timezone & Status</div>
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Timezone Offset (UTC)</label>
+                                    <select v-model.number="timezone" @change="updateTimezone" class="form-select">
+                                        <option v-for="tz in timezones" :key="tz.value" :value="tz.value">{{ tz.label }}</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">NTP Status</label>
+                                    <div>
+                                        <span v-if="ntpSynced" class="badge bg-success">✓ Synced</span>
+                                        <span v-else class="badge bg-danger">Not Synced</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Next Wake</label>
+                                    <div>{{ formatNextWake() }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Schedules -->
+                    <div v-for="(schedule, index) in schedules" :key="index" class="card mb-3">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div class="form-check">
+                                <input type="checkbox" v-model="schedule.enabled" @change="updateSchedule(index)" class="form-check-input" :id="'sched-' + index">
+                                <label class="form-check-label" :for="'sched-' + index">
+                                    <strong>{{ schedule.name }}</strong>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Wake Time</label>
+                                    <input type="time" v-model="schedule.time" @change="updateSchedule(index)" class="form-control">
+                                </div>
+                                <div class="col-md-9 mb-3">
+                                    <label class="form-label">Days</label>
+                                    <div class="btn-group d-block" role="group">
+                                        <button v-for="(day, i) in days" :key="i" 
+                                                type="button"
+                                                @click="toggleDay(index, i)" 
+                                                class="btn btn-sm"
+                                                :class="isDaySelected(schedule.days, i) ? 'btn-primary' : 'btn-outline-secondary'">
+                                            {{ day }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fa-solid fa-info-circle"></i> 
+                        <strong>Note:</strong> Wake schedules require WiFi connection and NTP time sync. The machine will automatically exit standby mode at scheduled times.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

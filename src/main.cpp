@@ -218,6 +218,7 @@ PID bPID(&temperature, &pidOutput, &setpoint, aggKp, aggKi, aggKd, 1, DIRECT);
 
 #include "brewHandler.h"
 #include "hotWaterHandler.h"
+#include "wakeSchedule.h"
 
 // Other variables
 boolean emergencyStop = false;                // Emergency stop if temperature is too high
@@ -1081,6 +1082,8 @@ void setup() {
             mqttSensors["currentKi"] = [] { return bPID.GetKi(); };
             mqttSensors["currentKd"] = [] { return bPID.GetKd(); };
             mqttSensors["machineState"] = [] { return machineState; };
+            mqttSensors["scheduleNextWake"] = [] { return nextWakeTime; };
+            mqttSensors["scheduleNtpSynced"] = [] { return ntpSynced ? 1 : 0; };
 
             if (config.get<bool>("hardware.switches.brew.enabled")) {
                 mqttVars["aggbKp"] = "pid.bd.kp";
@@ -1204,6 +1207,11 @@ void setup() {
     LOGF(INFO, "LittleFS: %d%% (used %ld bytes from %ld bytes)", (int)ceil(fsUsage), LittleFS.usedBytes(), LittleFS.totalBytes());
 
     systemInitialized = true;
+
+    // Initialize wake schedule (only in WiFi mode)
+    if (!config.get<bool>("system.offline_mode") && WiFi.status() == WL_CONNECTED) {
+        initWakeSchedule();
+    }
 
     // For momentary switches, start in normal operation mode
     if (config.get<bool>("hardware.switches.power.enabled") && config.get<int>("hardware.switches.power.type") == Switch::MOMENTARY) {
@@ -1384,6 +1392,17 @@ void loopPid() {
     }
 
     updateStandbyTimer();
+    
+    // Check wake schedule every minute (only in WiFi mode)
+    if (!config.get<bool>("system.offline_mode") && WiFi.status() == WL_CONNECTED) {
+        static unsigned long lastScheduleCheck = 0;
+        if (millis() - lastScheduleCheck > 60000) {  // 1 minute
+            checkWakeSchedule();
+            enableStandbyIfScheduled();  // Optional auto-standby
+            lastScheduleCheck = millis();
+        }
+    }
+    
     handleMachineState();
     hotWaterHandler();
     valveSafetyShutdownCheck();
